@@ -22,8 +22,8 @@ use App\Ark\Operations\Parts\NotConfiguredPartsCatalogLauncher;
 use App\Ark\Operations\Recommendations\RecommendationWorkCompletionListener;
 use App\Ark\Operations\RepairOrders\Status\RepairOrderStatusCatalog;
 use App\Ark\Operations\Settings\ShopDisplayTimezone;
-use App\Ark\Operations\Messaging\NotConfiguredOutboundSmsTransport;
 use App\Ark\Operations\Messaging\OutboundSmsTransport;
+use App\Ark\Texting\PlatformOutboundSmsTransport;
 use App\Ark\Operations\Settings\ShopIntegrationCredentials;
 use App\Ark\Operations\Settings\ShopIntegrationRuntimeConfig;
 use App\Ark\Operations\Telephony\Contracts\TelephonyProvider;
@@ -67,7 +67,7 @@ class AppServiceProvider extends ServiceProvider
         }
 
         $this->app->scoped(ShopIntegrationCredentials::class, fn (): ShopIntegrationCredentials => ShopIntegrationCredentials::forCurrentShop());
-        $this->app->bind(OutboundSmsTransport::class, NotConfiguredOutboundSmsTransport::class);
+        $this->app->bind(OutboundSmsTransport::class, PlatformOutboundSmsTransport::class);
         $this->app->bind(TelephonyProvider::class, NotConfiguredTelephonyProvider::class);
         $this->app->scoped(RepairOrderStatusCatalog::class);
 

@@ -224,3 +224,68 @@ test('fabric ingress rejects when cloud not connected', function () {
         $raw,
     )->assertUnauthorized();
 });
+
+test('fabric sms.incoming.received persists conversation message then interrupts', function () {
+    Event::fake([CommsInterruptReceived::class]);
+
+    $body = [
+        'operation' => 'sms.incoming.received',
+        'installation_id' => InstallationIdentity::uuid(),
+        'occurred_at' => now()->toIso8601String(),
+        'payload' => [
+            'from_phone' => '+17195550199',
+            'to_phone' => '+17195550100',
+            'body' => 'Need an appointment tomorrow',
+            'provider_message_id' => 'SMinbound-fabric-1',
+            'media' => [],
+            'opt_out' => false,
+        ],
+    ];
+
+    [$raw, $server] = fabricSignedRequest($body);
+
+    $this->call('POST', '/webhooks/cloud/fabric/events', [], [], [], $server, $raw)
+        ->assertOk()
+        ->assertJsonPath('ok', true)
+        ->assertJsonPath('ingested', true);
+
+    $message = \App\Ark\Operations\Conversations\ConversationMessage::query()
+        ->where('metadata->provider_message_id', 'SMinbound-fabric-1')
+        ->first();
+
+    expect($message)->not->toBeNull()
+        ->and($message->body)->toBe('Need an appointment tomorrow');
+
+    Event::assertDispatched(CommsInterruptReceived::class, function (CommsInterruptReceived $event) use ($message): bool {
+        return ($event->payload['kind'] ?? null) === 'sms'
+            && ($event->payload['action'] ?? null) === 'show'
+            && (int) ($event->payload['interrupt']['conversation_message_id'] ?? 0) === (int) $message->id;
+    });
+});
+
+test('fabric sms inbound is idempotent on provider message id', function () {
+    Event::fake([CommsInterruptReceived::class]);
+
+    $body = [
+        'operation' => 'sms.incoming.received',
+        'installation_id' => InstallationIdentity::uuid(),
+        'payload' => [
+            'from_phone' => '+17195550188',
+            'to_phone' => '+17195550100',
+            'body' => 'Ping',
+            'provider_message_id' => 'SMinbound-dup-1',
+        ],
+    ];
+
+    [$raw, $server] = fabricSignedRequest($body);
+    $this->call('POST', '/webhooks/cloud/fabric/events', [], [], [], $server, $raw)->assertOk();
+
+    [$raw2, $server2] = fabricSignedRequest($body);
+    $this->call('POST', '/webhooks/cloud/fabric/events', [], [], [], $server2, $raw2)
+        ->assertOk()
+        ->assertJsonPath('ingested', false);
+
+    expect(\App\Ark\Operations\Conversations\ConversationMessage::query()
+        ->where('metadata->provider_message_id', 'SMinbound-dup-1')
+        ->count())->toBe(1);
+});

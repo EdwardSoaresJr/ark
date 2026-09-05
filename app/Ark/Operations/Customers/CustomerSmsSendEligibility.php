@@ -35,7 +35,7 @@ final class CustomerSmsSendEligibility
         }
 
         if (! $this->twilioConfigured) {
-            return 'Shop messaging is disabled.';
+            return 'ARK Texting is not connected.';
         }
 
         if (! $this->consentStatus()->allowsOutboundSms()) {
@@ -70,7 +70,7 @@ final class CustomerSmsSendEligibility
         $errorCode = trim((string) ($this->customer->last_sms_error_code ?? ''));
 
         if ($errorCode !== '') {
-            return "Recent text delivery failed (Twilio {$errorCode}). Verify the customer's phone number before texting again.";
+            return "Recent text delivery failed ({$errorCode}). Verify the customer's phone number before texting again.";
         }
 
         return 'Recent text delivery failed. Verify the customer\'s phone number before texting again.';
