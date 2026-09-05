@@ -11,7 +11,7 @@ Marketing website, SEO, Growth marketing tools, and website admin are **not** Co
 
 ## What stays in Core (KEEP)
 
-- Shop identity (`ShopSettings`: name, address, phone, email, hours, timezone, logo, `website` URL for documents)
+- Shop identity (`ShopSettings`: name, address, phone, email, `scheduling_hours`, `shop_timezone`, logo, `website` URL for documents)
 - Google review destination (`shop_settings.google_reviews_url`) for post-repair review requests — Core messaging, not Website SEO
 - Customer portal and tokenized estimate / inspection / pay links
 - Leads as operational authority (advisor intake, `LeadSource::Website` for historical/source labeling, `LeadRecorder`)

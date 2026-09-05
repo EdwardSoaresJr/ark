@@ -6,7 +6,7 @@ Classification for public Core extraction. Companion: [ark-core-website-boundary
 
 | Item | Why |
 | --- | --- |
-| `ShopSettings` identity (name, address, phone, email, hours, timezone, logo, `website`) | Operational shop truth; documents/portal |
+| `ShopSettings` identity (name, address, phone, email, `scheduling_hours`, `shop_timezone`, logo, `website`) | Operational shop truth; documents/portal |
 | `google_reviews_url` + messaging settings | Post-repair review **destination** — not SEO |
 | Customer portal (`routes/portal.php`, portal views, customer shell) | Authenticated customer application |
 | `Lead` / `LeadRecorder` / `LeadSource::Website` | Operational lead authority |

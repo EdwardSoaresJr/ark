@@ -33,7 +33,8 @@ test('shop settings does not expose website marketing configuration', function (
         ->and($fillable)->toContain('google_reviews_url')
         ->and($fillable)->toContain('shop_name')
         ->and($fillable)->toContain('website')
-        ->and($fillable)->toContain('timezone');
+        ->and($fillable)->toContain('shop_timezone')
+        ->and($fillable)->toContain('scheduling_hours');
 
     expect(Schema::hasColumn('shop_settings', 'public_surface_settings'))->toBeFalse()
         ->and(Schema::hasColumn('shop_settings', 'growth_integrations'))->toBeFalse()
