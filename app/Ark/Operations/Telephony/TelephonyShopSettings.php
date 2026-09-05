@@ -2,6 +2,7 @@
 
 namespace App\Ark\Operations\Telephony;
 
+use App\Ark\LegacyInstallation\LegacyInstallationCommunications;
 use App\Ark\Operations\Settings\ShopSettings;
 
 readonly class TelephonyShopSettings
@@ -16,7 +17,11 @@ readonly class TelephonyShopSettings
 
         $provider = TelephonyProviderType::tryFrom($raw) ?? TelephonyProviderType::None;
 
-        if ($provider === TelephonyProviderType::Twilio || $provider === TelephonyProviderType::Fake) {
+        if ($provider === TelephonyProviderType::Fake) {
+            $provider = TelephonyProviderType::None;
+        }
+
+        if ($provider === TelephonyProviderType::Twilio && ! LegacyInstallationCommunications::legacyTwilioConfigured($settings)) {
             $provider = TelephonyProviderType::None;
         }
 

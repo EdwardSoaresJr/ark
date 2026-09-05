@@ -113,7 +113,36 @@ it('returns an honest not-configured result when ARK Mail is disconnected', func
     Mail::assertNothingSent();
 });
 
-it('does not treat MAIL_MAILER=postmark as a stock production provider', function () {
+it('uses legacy postmark when populated legacy authority exists without cloud mail', function () {
+    $this->app['env'] = 'production';
+    config(['mail.default' => 'postmark']);
+
+    if (! \Illuminate\Support\Facades\Schema::hasColumn('shop_settings', 'postmark_token')) {
+        \Illuminate\Support\Facades\Schema::table('shop_settings', function ($table): void {
+            $table->text('postmark_token')->nullable();
+        });
+    }
+
+    ShopSettings::current()->persistTrusted([
+        'postmark_token' => 'legacy-postmark-token-value',
+        'cloud_status' => null,
+        'cloud_credential' => null,
+        'ark_mail_status' => null,
+        'ark_mail_credential' => null,
+    ]);
+
+    ShopSettings::forgetCurrent();
+    app()->forgetInstance(OutboundTransactionalMail::class);
+    \App\Ark\Operations\Settings\ShopIntegrationRuntimeConfig::apply();
+
+    $outbound = app(OutboundTransactionalMail::class);
+
+    expect($outbound->providerMode())->toBe('legacy_postmark')
+        ->and($outbound->isReady())->toBeTrue()
+        ->and(config('services.postmark.token'))->toBe('legacy-postmark-token-value');
+});
+
+it('does not treat MAIL_MAILER=postmark alone as a stock production provider on fresh installs', function () {
     $this->app['env'] = 'production';
     config(['mail.default' => 'postmark']);
     config(['services.postmark.token' => 'should-not-enable-mail']);

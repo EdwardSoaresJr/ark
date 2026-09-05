@@ -141,7 +141,9 @@ use App\Ark\Operations\Maintenance\AddExtraOilQuartsAtCostController;
 use App\Ark\Operations\Maintenance\ConfirmEngineOilInstalledController;
 use App\Ark\Operations\Messaging\CancelScheduledOutboundEstimateController;
 use App\Ark\Operations\Messaging\CancelScheduledOutboundSmsController;
+use App\Ark\Operations\Messaging\MessagingWebhookController;
 use App\Ark\Operations\Messaging\OutboundMmsMediaController;
+use App\Ark\Operations\Messaging\TwilioMessagingStatusWebhookController;
 use App\Ark\Operations\Messaging\SendAdvisorMessageActionController;
 use App\Ark\Operations\Messaging\SendConversationContactMessageController;
 use App\Ark\Operations\Messaging\SendConversationDepositRequestLinkController;
@@ -241,6 +243,22 @@ use App\Ark\Operations\Telephony\OwnerCallIntelligenceController;
 use App\Ark\Operations\Telephony\SimulateIncomingCallController;
 use App\Ark\Operations\Telephony\StaffPresenceHeartbeatController;
 use App\Ark\Operations\Telephony\TelephonyCallbackController;
+use App\Ark\Operations\Telephony\TelephonyCallbackAnswerWebhookController;
+use App\Ark\Operations\Telephony\TelephonyCellAcceptWebhookController;
+use App\Ark\Operations\Telephony\TelephonyCellWhisperWebhookController;
+use App\Ark\Operations\Telephony\TelephonyClientIncomingWebhookController;
+use App\Ark\Operations\Telephony\TelephonyClientOutboundWebhookController;
+use App\Ark\Operations\Telephony\TelephonyConferenceJoinWebhookController;
+use App\Ark\Operations\Telephony\TelephonyConferenceWaitWebhookController;
+use App\Ark\Operations\Telephony\TelephonyDialCompleteWebhookController;
+use App\Ark\Operations\Telephony\TelephonyRecordingWebhookController;
+use App\Ark\Operations\Telephony\TelephonyRingLegStatusWebhookController;
+use App\Ark\Operations\Telephony\TelephonySipOutboundWebhookController;
+use App\Ark\Operations\Telephony\TelephonyStaggeredExpandWebhookController;
+use App\Ark\Operations\Telephony\TelephonyStatusWebhookController;
+use App\Ark\Operations\Telephony\TelephonyUnansweredVoicemailWebhookController;
+use App\Ark\Operations\Telephony\TelephonyVoicemailWebhookController;
+use App\Ark\Operations\Telephony\TelephonyWebhookController;
 use App\Ark\Operations\Telephony\ToggleCallSessionCoachingFollowUpController;
 use App\Ark\Operations\Today\Surface\TodayController;
 use App\Ark\Operations\Today\TodayRecommendationCloseLostController;
@@ -301,6 +319,9 @@ SurfaceRouting::appRoutes(function (): void {
     }
 
     Route::middleware('throttle:120,1')->group(function (): void {
+        Route::post('/webhooks/communications/twilio/voice/incoming', TelephonyWebhookController::class)
+            ->name('webhooks.communications.twilio.voice.incoming');
+
         Route::prefix('voice')->group(function (): void {
             Route::get('/health', VoiceCapabilityHealthController::class)
                 ->name('voice.health');
@@ -313,6 +334,62 @@ SurfaceRouting::appRoutes(function (): void {
         Route::get('/provision/{filename}', EndpointProvisionController::class)
             ->where('filename', '000000000000(-license)\.cfg|000000000000-directory\.xml|sip\.cfg|[0-9a-fA-F]{12}(-phone|-web|-cloud|-directory|-calls|-license)?\.(cfg|xml)')
             ->name('communications.endpoints.provision');
+
+        Route::post('/webhooks/communications/twilio/voice/sip-outbound', TelephonySipOutboundWebhookController::class)
+            ->name('webhooks.communications.twilio.voice.sip-outbound');
+
+        Route::post('/webhooks/communications/twilio/voice/status', TelephonyStatusWebhookController::class)
+            ->name('webhooks.communications.twilio.voice.status');
+
+        Route::post('/webhooks/communications/twilio/voice/dial-complete', TelephonyDialCompleteWebhookController::class)
+            ->name('webhooks.communications.twilio.voice.dial-complete');
+
+        Route::post('/webhooks/communications/twilio/voice/ring-status/{parentCallSid}/{endpointId}', TelephonyRingLegStatusWebhookController::class)
+            ->where('endpointId', '[0-9]+')
+            ->name('webhooks.communications.twilio.voice.ring-status');
+
+        Route::post('/webhooks/communications/twilio/voice/conference-join/{conference}/{parentCallSid}/{endpointId}', TelephonyConferenceJoinWebhookController::class)
+            ->where('endpointId', '[0-9]+')
+            ->name('webhooks.communications.twilio.voice.conference-join');
+
+        Route::post('/webhooks/communications/twilio/voice/conference-wait', TelephonyConferenceWaitWebhookController::class)
+            ->name('webhooks.communications.twilio.voice.conference-wait');
+
+        Route::post('/webhooks/communications/twilio/voice/staggered-expand/{parentCallSid}/{maxDelay}', TelephonyStaggeredExpandWebhookController::class)
+            ->where('maxDelay', '[0-9]+')
+            ->name('webhooks.communications.twilio.voice.staggered-expand');
+
+        Route::post('/webhooks/communications/twilio/voice/unanswered-voicemail/{parentCallSid}', TelephonyUnansweredVoicemailWebhookController::class)
+            ->name('webhooks.communications.twilio.voice.unanswered-voicemail');
+
+        Route::post('/webhooks/communications/twilio/voice/callback-answer/{token}', TelephonyCallbackAnswerWebhookController::class)
+            ->name('webhooks.communications.twilio.voice.callback-answer');
+
+        Route::post('/webhooks/communications/twilio/voice/client-outbound', TelephonyClientOutboundWebhookController::class)
+            ->name('webhooks.communications.twilio.voice.client-outbound');
+
+        Route::post('/webhooks/communications/twilio/voice/client-incoming', TelephonyClientIncomingWebhookController::class)
+            ->name('webhooks.communications.twilio.voice.client-incoming');
+
+        Route::post('/webhooks/communications/twilio/voice/cell-whisper/{parentCallSid}/{endpointId}', TelephonyCellWhisperWebhookController::class)
+            ->where('endpointId', '[0-9]+')
+            ->name('webhooks.communications.twilio.voice.cell-whisper');
+
+        Route::post('/webhooks/communications/twilio/voice/cell-accept/{parentCallSid}/{endpointId}', TelephonyCellAcceptWebhookController::class)
+            ->where('endpointId', '[0-9]+')
+            ->name('webhooks.communications.twilio.voice.cell-accept');
+
+        Route::post('/webhooks/communications/twilio/voice/recording', TelephonyRecordingWebhookController::class)
+            ->name('webhooks.communications.twilio.voice.recording');
+
+        Route::post('/webhooks/communications/twilio/voice/voicemail', TelephonyVoicemailWebhookController::class)
+            ->name('webhooks.communications.twilio.voice.voicemail');
+
+        Route::post('/webhooks/communications/twilio/messaging/incoming', MessagingWebhookController::class)
+            ->name('webhooks.communications.twilio.messaging.incoming');
+
+        Route::post('/webhooks/communications/twilio/messaging/status', TwilioMessagingStatusWebhookController::class)
+            ->name('webhooks.communications.twilio.messaging.status');
 
         Route::get('/media/outbound-mms/{token}', OutboundMmsMediaController::class)
             ->middleware('signed')
