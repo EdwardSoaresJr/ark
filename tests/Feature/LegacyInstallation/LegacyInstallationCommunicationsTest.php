@@ -3,19 +3,22 @@
 use App\Ark\LegacyInstallation\LegacyInstallationCommunications;
 use App\Ark\LegacyInstallation\LegacyInstallationCommunicationsMigration;
 use App\Ark\Mail\OutboundTransactionalMail;
+use App\Ark\Operations\Messaging\NotConfiguredOutboundSmsTransport;
 use App\Ark\Operations\Messaging\OutboundSmsTransport;
 use App\Ark\Operations\Settings\ShopIntegrationCredentials;
 use App\Ark\Operations\Settings\ShopSettings;
+use App\Ark\Operations\Telephony\Contracts\TelephonyProvider;
+use App\Ark\Operations\Telephony\Providers\NotConfiguredTelephonyProvider;
 use App\Ark\Operations\Telephony\TelephonyProviderManager;
 use App\Ark\Operations\Telephony\TelephonyProviderType;
 use Database\Seeders\ArkAuthorizationSeeder;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 
-test('fresh install migrations do not expose turnkey postmark product columns', function () {
+test('fresh install migrations drop empty turnkey credential columns', function () {
     expect(Schema::hasColumn('shop_settings', 'postmark_token'))->toBeFalse()
         ->and(Schema::hasColumn('shop_settings', 'email_provider'))->toBeFalse()
-        ->and(Schema::hasColumn('shop_settings', 'twilio_account_sid'))->toBeFalse();
+        ->and(Schema::hasColumn('shop_settings', 'twilio_account_sid'))->toBeFalse()
+        ->and(Schema::hasColumn('shop_settings', 'twilio_auth_token'))->toBeFalse();
 });
 
 test('preserve helper keeps populated postmark and twilio columns in place', function () {
@@ -43,13 +46,21 @@ test('preserve helper keeps populated postmark and twilio columns in place', fun
     ]);
 
     expect(Schema::hasColumn('shop_settings', 'postmark_token'))->toBeTrue()
-        ->and(LegacyInstallationCommunications::legacyPostmarkToken())->toBe('legacy-postmark-token-value')
-        ->and(LegacyInstallationCommunications::legacyPostmarkMessageStreamId())->toBe('outbound')
-        ->and(LegacyInstallationCommunications::legacyTwilioAccountSid())->toBe('AClegacyaccountsiddemotest00001')
-        ->and(LegacyInstallationCommunications::legacyTwilioAuthToken())->toBe('legacy-auth-token-value');
+        ->and(Schema::hasColumn('shop_settings', 'twilio_account_sid'))->toBeTrue()
+        ->and(Schema::hasColumn('shop_settings', 'twilio_auth_token'))->toBeTrue();
+
+    $settings = ShopSettings::current()->fresh();
+
+    expect(trim((string) $settings->postmark_token))->toBe('legacy-postmark-token-value')
+        ->and(trim((string) $settings->postmark_message_stream_id))->toBe('outbound')
+        ->and(trim((string) $settings->twilio_account_sid))->toBe('AClegacyaccountsiddemotest00001')
+        ->and(trim((string) $settings->twilio_auth_token))->toBe('legacy-auth-token-value')
+        ->and(LegacyInstallationCommunications::hasLegacyPostmarkColumns($settings))->toBeTrue()
+        ->and(LegacyInstallationCommunications::hasLegacyTwilioColumns($settings))->toBeTrue()
+        ->and(LegacyInstallationCommunications::active($settings))->toBeTrue();
 });
 
-test('legacy runtime activates postmark and twilio without cloud mail entitlement', function () {
+test('stock Core does not activate Twilio or Postmark when legacy credentials are populated', function () {
     $this->seed(ArkAuthorizationSeeder::class);
 
     if (! Schema::hasColumn('shop_settings', 'postmark_token')) {
@@ -76,46 +87,31 @@ test('legacy runtime activates postmark and twilio without cloud mail entitlemen
     app()->forgetInstance(ShopIntegrationCredentials::class);
     app()->forgetInstance(OutboundTransactionalMail::class);
     app()->forgetInstance(OutboundSmsTransport::class);
+    app()->forgetInstance(TelephonyProvider::class);
 
     expect(LegacyInstallationCommunications::active())->toBeTrue()
-        ->and(LegacyInstallationCommunications::legacyPostmarkConfigured())->toBeTrue()
-        ->and(LegacyInstallationCommunications::legacyTwilioConfigured())->toBeTrue();
+        ->and(LegacyInstallationCommunications::hasLegacyPostmarkColumns())->toBeTrue()
+        ->and(LegacyInstallationCommunications::hasLegacyTwilioColumns())->toBeTrue();
 
     ShopSettings::forgetCurrent();
     \App\Ark\Operations\Settings\ShopIntegrationRuntimeConfig::apply();
 
-    expect(app(OutboundSmsTransport::class)->isConfigured())->toBeTrue()
-        ->and(app(TelephonyProviderManager::class)->currentType())->toBe(TelephonyProviderType::Twilio);
+    expect(app(OutboundSmsTransport::class))->toBeInstanceOf(NotConfiguredOutboundSmsTransport::class)
+        ->and(app(OutboundSmsTransport::class)->isConfigured())->toBeFalse()
+        ->and(app(TelephonyProvider::class))->toBeInstanceOf(NotConfiguredTelephonyProvider::class)
+        ->and(app(TelephonyProviderManager::class)->currentType())->toBe(TelephonyProviderType::None)
+        ->and(config('services.postmark.token'))->not->toBe('legacy-postmark-token-value')
+        ->and(config('services.twilio.account_sid'))->not->toBe('AClegacyaccountsiddemotest00001');
 
     $this->app['env'] = 'production';
     config(['mail.default' => 'postmark']);
 
     $outbound = app(OutboundTransactionalMail::class);
 
-    expect($outbound->providerMode())->toBe('legacy_postmark')
-        ->and($outbound->isReady())->toBeTrue()
-        ->and(config('services.postmark.token'))->toBe('legacy-postmark-token-value');
+    expect($outbound->providerMode())->toBe('none')
+        ->and($outbound->isReady())->toBeFalse()
+        ->and($outbound->providerMode())->not->toBe('legacy_postmark');
 
-    Mail::fake();
-
-    $result = $outbound->sendMailable(
-        \App\Ark\Mail\TransactionalMailOperation::DocumentSend,
-        'customer@example.test',
-        new class extends \Illuminate\Mail\Mailable
-        {
-            public function content(): \Illuminate\Mail\Mailables\Content
-            {
-                return new \Illuminate\Mail\Mailables\Content(htmlString: '<p>legacy</p>');
-            }
-
-            public function envelope(): \Illuminate\Mail\Mailables\Envelope
-            {
-                return new \Illuminate\Mail\Mailables\Envelope(subject: 'Legacy');
-            }
-        },
-        'legacy-idem-'.uniqid(),
-    );
-
-    expect($result->ok())->toBeTrue();
-    Mail::assertSent(\Illuminate\Mail\Mailable::class);
+    expect(fn () => route('webhooks.communications.twilio.messaging.incoming', absolute: false))
+        ->toThrow(\Symfony\Component\Routing\Exception\RouteNotFoundException::class);
 });

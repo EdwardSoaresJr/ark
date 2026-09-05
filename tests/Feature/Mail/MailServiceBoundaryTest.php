@@ -113,7 +113,7 @@ it('returns an honest not-configured result when ARK Mail is disconnected', func
     Mail::assertNothingSent();
 });
 
-it('uses legacy postmark when populated legacy authority exists without cloud mail', function () {
+it('does not activate legacy Postmark when populated credentials exist without cloud mail', function () {
     $this->app['env'] = 'production';
     config(['mail.default' => 'postmark']);
 
@@ -137,9 +137,9 @@ it('uses legacy postmark when populated legacy authority exists without cloud ma
 
     $outbound = app(OutboundTransactionalMail::class);
 
-    expect($outbound->providerMode())->toBe('legacy_postmark')
-        ->and($outbound->isReady())->toBeTrue()
-        ->and(config('services.postmark.token'))->toBe('legacy-postmark-token-value');
+    expect($outbound->providerMode())->toBe('none')
+        ->and($outbound->isReady())->toBeFalse()
+        ->and(config('services.postmark.token'))->not->toBe('legacy-postmark-token-value');
 });
 
 it('does not treat MAIL_MAILER=postmark alone as a stock production provider on fresh installs', function () {
@@ -267,6 +267,7 @@ it('exposes no stock BYO Postmark configuration surface', function () {
         ->and($controller)->not->toContain("'postmark'")
         ->and($controller)->not->toContain('postmark_token')
         ->and($outbound)->not->toContain('byo_postmark')
+        ->and($outbound)->not->toContain('legacy_postmark')
         ->and($outbound)->not->toContain('PROVIDER_POSTMARK')
         ->and($outbound)->not->toContain('sendViaByoPostmark');
 });

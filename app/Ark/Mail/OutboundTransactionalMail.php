@@ -3,7 +3,6 @@
 namespace App\Ark\Mail;
 
 use App\Ark\Cloud\CloudConnection;
-use App\Ark\LegacyInstallation\LegacyInstallationCommunications;
 use Illuminate\Mail\Mailable;
 use Illuminate\Support\Facades\Mail;
 
@@ -11,7 +10,6 @@ use Illuminate\Support\Facades\Mail;
  * Provider-neutral outbound transactional email boundary.
  *
  * Stock Core delivers through ARK Mail when Cloud is connected.
- * Legacy installations may continue shop-owned Postmark until an explicit migration.
  * Non-production may use log/array for local development and tests.
  * Custom/community providers can replace or subclass this binding without
  * changing estimate, invoice, or document workflows.
@@ -26,16 +24,12 @@ class OutboundTransactionalMail
     ) {}
 
     /**
-     * @return 'ark_mail'|'legacy_postmark'|'local_log'|'none'
+     * @return 'ark_mail'|'local_log'|'none'
      */
     public function providerMode(): string
     {
         if ($this->arkMail->isConfigured()) {
             return 'ark_mail';
-        }
-
-        if (LegacyInstallationCommunications::legacyPostmarkConfigured()) {
-            return 'legacy_postmark';
         }
 
         if ($this->allowsLocalMailer()) {
@@ -58,7 +52,6 @@ class OutboundTransactionalMail
             $cloud->isSuspended() => 'Suspended',
             $cloud->isPairing() => 'Pairing',
             $this->providerMode() === 'ark_mail' => 'ARK Mail',
-            $this->providerMode() === 'legacy_postmark' => 'Postmark',
             $this->providerMode() === 'local_log' => 'Local development mailer',
             default => 'Not configured',
         };
@@ -80,16 +73,6 @@ class OutboundTransactionalMail
 
         if ($mode === 'none') {
             return TransactionalMailResult::notConfigured();
-        }
-
-        if ($mode === 'legacy_postmark') {
-            try {
-                Mail::to(strtolower(trim($recipientEmail)))->send($mailable);
-            } catch (\Throwable $e) {
-                return TransactionalMailResult::providerError($e->getMessage());
-            }
-
-            return TransactionalMailResult::sent();
         }
 
         if ($mode === 'ark_mail') {

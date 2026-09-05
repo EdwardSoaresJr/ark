@@ -2,11 +2,11 @@
 
 namespace App\Ark\Operations\Settings;
 
-use App\Ark\LegacyInstallation\LegacyInstallationCommunications;
 use Throwable;
 
 /**
- * Applies shop runtime configuration for legacy installations and reply-to identity.
+ * Applies shop-stored reply-to into runtime config.
+ * Does not inject Postmark tokens — official production mail is ARK Mail only.
  */
 final class ShopIntegrationRuntimeConfig
 {
@@ -16,30 +16,6 @@ final class ShopIntegrationRuntimeConfig
             $credentials = ShopIntegrationCredentials::forCurrentShop();
         } catch (Throwable) {
             return;
-        }
-
-        if (LegacyInstallationCommunications::legacyPostmarkConfigured()) {
-            $postmarkToken = $credentials->postmarkToken();
-
-            if ($postmarkToken !== null) {
-                config(['services.postmark.token' => $postmarkToken]);
-            }
-
-            $messageStreamId = $credentials->postmarkMessageStreamId();
-
-            if ($messageStreamId !== null) {
-                config(['services.postmark.message_stream_id' => $messageStreamId]);
-            }
-        }
-
-        if (LegacyInstallationCommunications::legacyTwilioConfigured()) {
-            config([
-                'services.twilio.account_sid' => $credentials->twilioAccountSid(),
-                'services.twilio.auth_token' => $credentials->twilioAuthToken(),
-                'services.twilio.api_key_sid' => LegacyInstallationCommunications::legacyTwilioApiKeySid(),
-                'services.twilio.api_key_secret' => LegacyInstallationCommunications::legacyTwilioApiKeySecret(),
-                'services.twilio.voice_twiml_app_sid' => LegacyInstallationCommunications::legacyTwilioVoiceTwimlAppSid(),
-            ]);
         }
 
         $replyTo = $credentials->mailReplyTo();

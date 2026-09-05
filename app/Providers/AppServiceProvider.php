@@ -22,16 +22,12 @@ use App\Ark\Operations\Parts\NotConfiguredPartsCatalogLauncher;
 use App\Ark\Operations\Recommendations\RecommendationWorkCompletionListener;
 use App\Ark\Operations\RepairOrders\Status\RepairOrderStatusCatalog;
 use App\Ark\Operations\Settings\ShopDisplayTimezone;
-use App\Ark\LegacyInstallation\LegacyInstallationCommunications;
-use App\Ark\LegacyInstallation\LegacyTwilioOutboundSmsTransport;
 use App\Ark\Operations\Messaging\NotConfiguredOutboundSmsTransport;
 use App\Ark\Operations\Messaging\OutboundSmsTransport;
 use App\Ark\Operations\Settings\ShopIntegrationCredentials;
 use App\Ark\Operations\Settings\ShopIntegrationRuntimeConfig;
 use App\Ark\Operations\Telephony\Contracts\TelephonyProvider;
 use App\Ark\Operations\Telephony\Providers\NotConfiguredTelephonyProvider;
-use App\Ark\Operations\Telephony\Providers\TwilioTelephonyProvider;
-use App\Ark\Operations\Telephony\MobileVoice\MobileVoiceCredentials;
 use App\Ark\Operations\Workspace\WorkspaceTabBootEnricher;
 use App\Ark\Platform\Provisioning\Coolify\CoolifyAdapter;
 use App\Ark\Platform\Provisioning\Coolify\CoolifyClient;
@@ -71,21 +67,8 @@ class AppServiceProvider extends ServiceProvider
         }
 
         $this->app->scoped(ShopIntegrationCredentials::class, fn (): ShopIntegrationCredentials => ShopIntegrationCredentials::forCurrentShop());
-        $this->app->bind(OutboundSmsTransport::class, function ($app): OutboundSmsTransport {
-            if (LegacyInstallationCommunications::active()) {
-                return $app->make(LegacyTwilioOutboundSmsTransport::class);
-            }
-
-            return $app->make(NotConfiguredOutboundSmsTransport::class);
-        });
-        $this->app->bind(TelephonyProvider::class, function ($app): TelephonyProvider {
-            if (LegacyInstallationCommunications::legacyTwilioConfigured()) {
-                return $app->make(TwilioTelephonyProvider::class);
-            }
-
-            return $app->make(NotConfiguredTelephonyProvider::class);
-        });
-        $this->app->scoped(MobileVoiceCredentials::class, fn (): MobileVoiceCredentials => MobileVoiceCredentials::forCurrentShop());
+        $this->app->bind(OutboundSmsTransport::class, NotConfiguredOutboundSmsTransport::class);
+        $this->app->bind(TelephonyProvider::class, NotConfiguredTelephonyProvider::class);
         $this->app->scoped(RepairOrderStatusCatalog::class);
 
         $this->app->singleton(ProvisionBuilder::class, fn (): ProvisionBuilder => ProvisionBuilder::default());
