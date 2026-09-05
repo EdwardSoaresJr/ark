@@ -79,7 +79,7 @@ RUN rm -f /etc/nginx/sites-enabled/default /etc/nginx/sites-available/default \
     '    root /app/public;' \
     '    index index.php;' \
     '    client_max_body_size 64M;' \
-    '    location ~ "^/app/[0-9a-z]{20,}$" {' \
+    '    location ~ "^/app/[0-9a-zA-Z]{20,}$" {' \
     '        proxy_http_version 1.1;' \
     '        proxy_set_header Host $http_host;' \
     '        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;' \
