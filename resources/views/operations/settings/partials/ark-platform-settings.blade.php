@@ -30,7 +30,7 @@
             <p class="text-[11px] font-bold uppercase tracking-wide text-slate-400">ARK Platform</p>
             <h2 class="text-base font-black text-slate-950">Managed ARK services</h2>
             <p class="mt-0.5 text-xs leading-5 text-slate-500">
-                Connect this Box to ARK Platform for Mail, SMS, Voice, and other managed services. Core keeps shop operations; Cloud owns service configuration.
+                Connect this Box to ARK Platform for Email, Texting, Voice, and other managed services. Core keeps shop operations; Cloud owns service configuration.
             </p>
         </div>
 
@@ -114,7 +114,7 @@
                 @php($mailService = collect($services)->firstWhere('key', 'mail'))
                 @if (is_array($mailService) && ($mailService['status'] ?? null) === 'needs_setup')
                     <div class="mt-3 rounded-sm border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950">
-                        <p class="font-semibold">ARK Mail needs setup</p>
+                        <p class="font-semibold">ARK Email needs setup</p>
                         <p class="mt-1">
                             Set a Reply-To address under Customer messaging so Cloud can finish Mail identity.
                             @if (filled($settings->ark_mail_from_email))

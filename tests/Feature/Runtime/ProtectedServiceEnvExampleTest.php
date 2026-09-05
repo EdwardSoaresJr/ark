@@ -26,6 +26,6 @@ it('does not advertise protected turnkey provider credentials in env example', f
         expect($example)->not->toContain($key.'=');
     }
 
-    expect($example)->toContain('ARK Mail is configured in Settings')
+    expect($example)->toContain('ARK Email is configured in Settings')
         ->and($example)->toContain('Do not paste provider API tokens into Core');
 });

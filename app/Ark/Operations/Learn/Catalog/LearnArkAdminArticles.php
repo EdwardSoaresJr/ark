@@ -88,7 +88,7 @@ final class LearnArkAdminArticles
             [
                 'slug' => 'email-delivery',
                 'title' => 'Shop email delivery',
-                'summary' => 'ARK Mail settings; estimate email with PDF and portal link.',
+                'summary' => 'ARK Email settings; estimate email with PDF and portal link.',
                 'view' => 'operations.learn.admin.email-delivery',
             ],
             [

@@ -52,7 +52,7 @@ class ImportIntegrationCredentialsFromEnv extends Command
         $this->info('Imported into shop_settings:');
         $this->line('  Messaging: '.($credentials->messagingConfigured() ? 'configured' : 'not configured'));
         $this->line('  Mail reply-to: '.(filled($credentials->mailReplyTo()) ? 'configured' : 'incomplete'));
-        $this->line('  ARK Mail: '.(app(\App\Ark\Mail\OutboundTransactionalMail::class)->isReady() ? 'ready' : 'not connected'));
+        $this->line('  ARK Email: '.(app(\App\Ark\Mail\OutboundTransactionalMail::class)->isReady() ? 'ready' : 'not connected'));
 
         if ($this->option('clear-env')) {
             $this->clearEnvKeys($envFile, array_keys($keys));

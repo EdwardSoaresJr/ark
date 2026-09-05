@@ -10,7 +10,7 @@
             <p class="text-[11px] font-bold uppercase tracking-wide text-slate-400">Customer Messaging</p>
             <h2 class="text-base font-black text-slate-950">Shop messaging defaults</h2>
             <p class="mt-0.5 text-xs leading-5 text-slate-500">
-                Reusable snippets and advisor messaging behavior. Phone, SMS, and Voice service configuration lives in ARK Platform.
+                Reusable snippets and advisor messaging behavior. Phone, Texting, and Voice service configuration lives in ARK Platform.
             </p>
         </div>
 
@@ -43,7 +43,7 @@
                 <div class="border-b border-slate-200 pb-2">
                     <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Email reply-to</p>
                     <p class="mt-1 text-xs leading-5 text-slate-500">
-                        Customer replies to estimate and invoice email go here. Connect ARK Mail in ARK Platform to send outbound email.
+                        Customer replies to estimate and invoice email go here. Connect ARK Email in ARK Platform to send outbound email.
                     </p>
                 </div>
                 <div class="grid gap-3 sm:grid-cols-2">
@@ -133,7 +133,7 @@
 
             <div class="rounded-sm border border-slate-200 bg-slate-50 p-3 space-y-3">
                 <p class="text-[10px] font-bold uppercase tracking-wide text-slate-500">Missed call text-back</p>
-                <p class="text-xs text-slate-500">Shop-owned SMS templates sent after a missed inbound call when ARK SMS is active.</p>
+                <p class="text-xs text-slate-500">Shop-owned SMS templates sent after a missed inbound call when ARK Texting is active.</p>
                 <label class="flex items-start gap-2 text-sm text-slate-800">
                     <input type="hidden" name="telephony_call_flow[missed_call_rescue_enabled]" value="0">
                     <input

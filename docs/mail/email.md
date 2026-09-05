@@ -1,8 +1,8 @@
 # Customer email
 
-ARK Mail sends transactional customer email such as estimates, invoices, inspections, and documents.
+ARK Email sends transactional customer email such as estimates, invoices, inspections, and documents.
 
-## Connect ARK Mail
+## Connect ARK Email
 
 1. Open **Settings → Email**.
 2. Choose **Connect**.

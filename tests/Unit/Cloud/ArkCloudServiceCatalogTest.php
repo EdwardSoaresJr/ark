@@ -51,8 +51,8 @@ test('connected box renders Cloud service projection not local leftovers', funct
             'reply_to' => 'service@shop.example.test',
             'services' => [
                 ['key' => 'connect', 'label' => 'ARK Connect', 'status' => 'active', 'status_label' => 'Active', 'detail' => null],
-                ['key' => 'mail', 'label' => 'ARK Mail', 'status' => 'needs_setup', 'status_label' => 'Needs setup', 'detail' => 'Configure Reply-To in ARK Platform'],
-                ['key' => 'sms', 'label' => 'ARK SMS', 'status' => 'not_enabled', 'status_label' => 'Not enabled', 'detail' => null],
+                ['key' => 'mail', 'label' => 'ARK Email', 'status' => 'needs_setup', 'status_label' => 'Needs setup', 'detail' => 'Configure Reply-To in ARK Platform'],
+                ['key' => 'sms', 'label' => 'ARK Texting', 'status' => 'not_enabled', 'status_label' => 'Not enabled', 'detail' => null],
                 ['key' => 'voice', 'label' => 'ARK Voice', 'status' => 'not_enabled', 'status_label' => 'Not enabled', 'detail' => null],
                 ['key' => 'dragon', 'label' => 'Dragon AI', 'status' => 'not_enabled', 'status_label' => 'Not enabled', 'detail' => null],
                 ['key' => 'backup', 'label' => 'ARK Backup', 'status' => 'coming_soon', 'status_label' => 'Coming soon', 'detail' => null],

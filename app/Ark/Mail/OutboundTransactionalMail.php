@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Mail;
 /**
  * Provider-neutral outbound transactional email boundary.
  *
- * Stock Core delivers through ARK Mail when Cloud is connected.
+ * Stock Core delivers through ARK Email when Cloud is connected.
  * Non-production may use log/array for local development and tests.
  * Custom/community providers can replace or subclass this binding without
  * changing estimate, invoice, or document workflows.
@@ -51,7 +51,7 @@ class OutboundTransactionalMail
         return match (true) {
             $cloud->isSuspended() => 'Suspended',
             $cloud->isPairing() => 'Pairing',
-            $this->providerMode() === 'ark_mail' => 'ARK Mail',
+            $this->providerMode() === 'ark_mail' => 'ARK Email',
             $this->providerMode() === 'local_log' => 'Local development mailer',
             default => 'Not configured',
         };

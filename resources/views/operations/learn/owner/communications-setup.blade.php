@@ -26,7 +26,7 @@
 
     <h3>Mail</h3>
     <p>
-        Customer email uses <strong>ARK Mail</strong> when the shop is paired with ARK Platform.
+        Customer email uses <strong>ARK Email</strong> when the shop is paired with ARK Platform.
         There is no shop-owned commercial mail-token form in stock Core.
     </p>
 

@@ -188,7 +188,7 @@ final class RepairOrderConversationSendProjection
         }
 
         if (! $this->outboundMail->isReady()) {
-            return 'Email isn’t configured yet. Connect ARK Mail in Settings → Email.';
+            return 'Email isn’t configured yet. Connect ARK Email in Settings → Email.';
         }
 
         $email = strtolower(trim((string) ($repairOrder->customer?->email ?? '')));
@@ -262,7 +262,7 @@ final class RepairOrderConversationSendProjection
         }
 
         if (! $this->outboundMail->isReady()) {
-            return 'Email isn’t configured yet. Connect ARK Mail in Settings → Email.';
+            return 'Email isn’t configured yet. Connect ARK Email in Settings → Email.';
         }
 
         $email = strtolower(trim((string) ($repairOrder->customer?->email ?? '')));
@@ -348,7 +348,7 @@ final class RepairOrderConversationSendProjection
         }
 
         if (! $this->outboundMail->isReady()) {
-            return 'Email isn’t configured yet. Connect ARK Mail in Settings → Email.';
+            return 'Email isn’t configured yet. Connect ARK Email in Settings → Email.';
         }
 
         $email = strtolower(trim((string) ($repairOrder->customer?->email ?? '')));

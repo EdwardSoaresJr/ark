@@ -169,7 +169,7 @@ test('admins can read owner excellence guides and default learn entry opens owne
     $this->get(route('operations.learn.show', ['role' => 'owner', 'article' => 'communications-setup']))
         ->assertOk()
         ->assertSee('Communications setup')
-        ->assertSee('ARK Mail')
+        ->assertSee('ARK Email')
         ->assertSee('Settings → Communications')
         ->assertSee('Ring-group');
 

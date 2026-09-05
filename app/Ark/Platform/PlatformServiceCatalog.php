@@ -171,8 +171,8 @@ final class PlatformServiceCatalog
     {
         $labels = [
             'connect' => 'ARK Connect',
-            'mail' => 'ARK Mail',
-            'sms' => 'ARK SMS',
+            'mail' => 'ARK Email',
+            'sms' => 'ARK Texting',
             'voice' => 'ARK Voice',
             'dragon' => 'Dragon AI',
             'backup' => 'ARK Backup',

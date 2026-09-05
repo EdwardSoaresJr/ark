@@ -43,8 +43,8 @@ test('settings ark cloud section shows connect and service catalog without provi
         ->assertOk()
         ->assertSee('ARK Platform')
         ->assertSee('Connect ARK Platform')
-        ->assertSee('ARK Mail')
-        ->assertSee('ARK SMS')
+        ->assertSee('ARK Email')
+        ->assertSee('ARK Texting')
         ->assertSee('ARK Voice')
         ->assertSee('Dragon AI')
         ->assertSee('Requires ARK Platform')
@@ -149,7 +149,7 @@ test('ark cloud service catalog renders Cloud projection when connected', functi
         'cloud.example.test/api/v1/status' => \Illuminate\Support\Facades\Http::response([
             'ok' => true,
             'services' => [
-                ['key' => 'mail', 'label' => 'ARK Mail', 'status' => 'needs_setup', 'status_label' => 'Needs setup', 'detail' => null],
+                ['key' => 'mail', 'label' => 'ARK Email', 'status' => 'needs_setup', 'status_label' => 'Needs setup', 'detail' => null],
             ],
         ], 200),
     ]);

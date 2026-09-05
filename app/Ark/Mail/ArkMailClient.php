@@ -86,7 +86,7 @@ final class ArkMailClient
                 'error' => $e->getMessage(),
             ]);
 
-            return TransactionalMailResult::providerError('ARK Mail is unavailable.');
+            return TransactionalMailResult::providerError('ARK Email is unavailable.');
         }
 
         $json = $response->json() ?? [];
@@ -100,7 +100,7 @@ final class ArkMailClient
         }
 
         $reason = is_string($json['reason_code'] ?? null) ? $json['reason_code'] : 'rejected';
-        $message = is_string($json['message'] ?? null) ? $json['message'] : 'ARK Mail rejected the message.';
+        $message = is_string($json['message'] ?? null) ? $json['message'] : 'ARK Email rejected the message.';
 
         if (in_array($reason, ['tenant_suspended', 'installation_suspended', 'installation_revoked'], true)) {
             $cloud->markSuspended();

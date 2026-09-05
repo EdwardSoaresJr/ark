@@ -126,7 +126,7 @@ ARK Core operates as a complete shop management system without third-party integ
 Optional integrations include:
 
 * External / manual payment recording (ledger)
-* ARK Mail and other managed services through **ARK Platform** pairing
+* ARK Email and other managed services through **ARK Platform** pairing
 * External labor-guide imports
 * NHTSA VIN decode (built in)
 
