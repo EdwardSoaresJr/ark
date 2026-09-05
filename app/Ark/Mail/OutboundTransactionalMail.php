@@ -2,7 +2,7 @@
 
 namespace App\Ark\Mail;
 
-use App\Ark\Cloud\CloudConnection;
+use App\Ark\Platform\PlatformConnection;
 use Illuminate\Mail\Mailable;
 use Illuminate\Support\Facades\Mail;
 
@@ -46,7 +46,7 @@ class OutboundTransactionalMail
 
     public function statusLabel(): string
     {
-        $cloud = CloudConnection::current();
+        $cloud = PlatformConnection::current();
 
         return match (true) {
             $cloud->isSuspended() => 'Suspended',

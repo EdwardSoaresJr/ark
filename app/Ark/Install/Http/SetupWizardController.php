@@ -500,7 +500,7 @@ final class SetupWizardController
             ['n' => 3, 'label' => 'Database'],
             ['n' => 4, 'label' => 'Shop'],
             ['n' => 5, 'label' => 'Admin'],
-            ['n' => 6, 'label' => 'ARK Cloud'],
+            ['n' => 6, 'label' => 'ARK Platform'],
             ['n' => 7, 'label' => 'Review'],
         ];
     }

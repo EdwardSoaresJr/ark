@@ -121,12 +121,12 @@ Development seeders may create example staff accounts such as `admin@ark.test`. 
 
 ## Optional integrations and ARK Services
 
-ARK Core operates as a complete shop management system without third-party integrations or ARK Cloud.
+ARK Core operates as a complete shop management system without third-party integrations or ARK Platform.
 
 Optional integrations include:
 
 * External / manual payment recording (ledger)
-* ARK Mail and other managed services through **ARK Cloud** pairing
+* ARK Mail and other managed services through **ARK Platform** pairing
 * External labor-guide imports
 * NHTSA VIN decode (built in)
 

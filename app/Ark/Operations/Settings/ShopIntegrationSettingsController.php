@@ -2,7 +2,7 @@
 
 namespace App\Ark\Operations\Settings;
 
-use App\Ark\Cloud\CloudConnection;
+use App\Ark\Platform\PlatformConnection;
 use App\Ark\Mail\ArkMailActivationClient;
 use App\Ark\Mail\ArkMailIdentityClient;
 use App\Ark\Operations\Documents\EstimateDocumentService;
@@ -34,7 +34,7 @@ public function updatePayments(Request $request): RedirectResponse
     {
         return redirect()
             ->route('operations.settings.shop.edit')
-            ->with('status', 'Card processor settings are not configured in Core. Record external payments on the repair order. Managed processors belong to ARK Cloud Payments.');
+            ->with('status', 'Card processor settings are not configured in Core. Record external payments on the repair order. Managed processors belong to ARK Platform Payments.');
     }
 
     public function updateEmail(Request $request): RedirectResponse
@@ -53,31 +53,31 @@ public function updatePayments(Request $request): RedirectResponse
             ->route('operations.settings.shop.edit', ['section' => 'customer-messaging'])
             ->with('status', 'Email settings saved.');
 
-        if (CloudConnection::current()->isConnected()) {
+        if (PlatformConnection::current()->isConnected()) {
             $synced = app(ArkMailIdentityClient::class)->syncShopReplyTo();
             if (! $synced) {
-                $redirect->with('warning', 'Reply-To was saved here, but ARK Cloud could not be updated right now. Try again from Settings → ARK Cloud after Cloud is reachable.');
+                $redirect->with('warning', 'Reply-To was saved here, but ARK Platform could not be updated right now. Try again from Settings → ARK Platform after Cloud is reachable.');
             }
         }
 
         return $redirect;
     }
 
-    /** @deprecated Use ShopCloudSettingsController — redirects preserved for old links. */
+    /** @deprecated Use ShopPlatformSettingsController — redirects preserved for old links. */
     public function enableArkMail(Request $request, ArkMailActivationClient $activation): RedirectResponse
     {
-        return app(ShopCloudSettingsController::class)->connect($request, $activation);
+        return app(ShopPlatformSettingsController::class)->connect($request, $activation);
     }
 
-    /** @deprecated Use ShopCloudSettingsController */
+    /** @deprecated Use ShopPlatformSettingsController */
     public function claimArkMail(Request $request, ArkMailActivationClient $activation): RedirectResponse
     {
-        return app(ShopCloudSettingsController::class)->claim($request, $activation);
+        return app(ShopPlatformSettingsController::class)->claim($request, $activation);
     }
 
-    /** @deprecated Use ShopCloudSettingsController */
+    /** @deprecated Use ShopPlatformSettingsController */
     public function disconnectArkMail(ArkMailActivationClient $activation): RedirectResponse
     {
-        return app(ShopCloudSettingsController::class)->disconnect($activation);
+        return app(ShopPlatformSettingsController::class)->disconnect($activation);
     }
 }

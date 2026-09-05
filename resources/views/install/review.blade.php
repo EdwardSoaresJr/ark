@@ -22,7 +22,7 @@
         <dt>Workstation</dt>
         <dd>{{ !empty($draft['create_workstation']) ? 'Main Shop (default)' : 'None' }}</dd>
         <dt>ARK Services</dt>
-        <dd>Connect ARK Cloud after installation in Settings</dd>
+        <dd>Connect ARK Platform after installation in Settings</dd>
     </dl>
 
     <form method="post" action="{{ route('install.run') }}" id="install-run-form">

@@ -1,6 +1,6 @@
 @php
     $outbound = app(\App\Ark\Mail\OutboundTransactionalMail::class);
-    $cloud = \App\Ark\Cloud\CloudConnection::current();
+    $cloud = \App\Ark\Platform\PlatformConnection::current();
     $cloud->clearExpiredPairing();
     $statusLabel = $outbound->statusLabel();
     $arkConnected = $cloud->isConnected();
@@ -23,7 +23,7 @@
             <div>
                 <p class="text-sm font-semibold text-slate-900">ARK Mail</p>
                 <p class="mt-0.5 text-xs leading-5 text-slate-500">
-                    Managed transactional email for ARK. Connect this Box to ARK Cloud to send customer email.
+                    Managed transactional email for ARK. Connect this Box to ARK Platform to send customer email.
                 </p>
                 <p class="mt-1 text-xs text-slate-500">Status: {{ $statusLabel }}</p>
             </div>
@@ -55,7 +55,7 @@
                 @if ($pairingCode)
                     <p class="font-semibold text-slate-900">Pairing code: <span class="font-mono tracking-widest">{{ $pairingCode }}</span></p>
                 @endif
-                <p class="mt-1 text-slate-500">Approve this code in ARK Cloud for the correct shop, then finish connecting.</p>
+                <p class="mt-1 text-slate-500">Approve this code in ARK Platform for the correct shop, then finish connecting.</p>
             </div>
             <form method="POST" action="{{ route('operations.settings.shop.email.ark-mail.claim') }}">
                 @csrf

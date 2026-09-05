@@ -1,8 +1,8 @@
-<x-operations.app title="Connecting ARK Cloud">
+<x-operations.app title="Connecting ARK Platform">
 <div class="mx-auto max-w-lg px-4 py-10">
-    <h1 class="text-xl font-semibold text-slate-950">Connecting ARK Cloud</h1>
+    <h1 class="text-xl font-semibold text-slate-950">Connecting ARK Platform</h1>
     <p class="mt-2 text-sm text-slate-600">
-        Finish signing in on ARK Cloud and approve this Box. This page will update when the connection is ready.
+        Finish signing in on ARK Platform and approve this Box. This page will update when the connection is ready.
         ARK does not sign you into Cloud automatically — Cloud asks for your account as usual.
     </p>
 
@@ -54,7 +54,7 @@
                 return;
             }
             if (data.status === 'pending') {
-                statusEl.textContent = 'Waiting for approval in ARK Cloud…';
+                statusEl.textContent = 'Waiting for approval in ARK Platform…';
             } else if (data.status === 'expired' || data.status === 'cancelled') {
                 statusEl.textContent = 'This connection request expired. Start again from Settings.';
                 return;

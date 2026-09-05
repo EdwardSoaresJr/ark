@@ -4,9 +4,9 @@ use App\Ark\Runtime\Surfaces\SurfaceRouting;
 use Illuminate\Support\Facades\Route;
 
 /*
-| ARK Cloud product portal does not live on Core Boxes.
+| ARK Platform product portal does not live on Core Boxes.
 |
-| Manage / Connect targets ARK Cloud (ARK_CLOUD_BASE_URL / cloud.arksms.com).
+| Manage / Connect targets ARK Platform (ARK_CLOUD_BASE_URL / cloud.arksms.com).
 | Legacy /cloud bookmarks redirect away when a Cloud base URL is configured.
 */
 

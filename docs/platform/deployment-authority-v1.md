@@ -23,9 +23,9 @@ Not customer-facing SKUs. Internal clarity:
 | Product | Owns |
 | --- | --- |
 | **ARK** | The repair shop operating system |
-| **ARK Cloud** | Shop provisioning, DNS intent, deployments, backups, billing hooks, upgrades, **routing registry** |
+| **ARK Platform** | Shop provisioning, DNS intent, deployments, backups, billing hooks, upgrades, **routing registry** |
 
-Customers never buy “ARK Cloud.” They experience it on **Start Trial**.
+Customers never buy “ARK Platform.” They experience it on **Start Trial**.
 
 ---
 
@@ -33,7 +33,7 @@ Customers never buy “ARK Cloud.” They experience it on **Start Trial**.
 
 | Layer | Owns | Does not own |
 | --- | --- | --- |
-| **ARK Cloud** | Shop, Deployment, Routing Target, Ingress Endpoint (truth) | Proxying bytes |
+| **ARK Platform** | Shop, Deployment, Routing Target, Ingress Endpoint (truth) | Proxying bytes |
 | **Coolify** | Deploy containers / apps on a target | Routing registry, hostname → Shop |
 | **ARK Edge (Traefik)** | “Given `demo-auto.arksms.com`, where do I send this?” | Stancl, ROs, customers, provisioning |
 | **Laravel + Stancl** | Resolve Shop on this machine; run ARK | Choosing a VPS |
@@ -109,7 +109,7 @@ ARK Edge VPS (Traefik)
 | --- | --- |
 | One wildcard cert | Simple |
 | One DNS record | Move shops without DNS TTL drama |
-| One routing place | ARK Cloud registry → Traefik sync |
+| One routing place | ARK Platform registry → Traefik sync |
 | App servers private | Less exposed surface |
 
 ### Model B — DNS per shop (avoid)
@@ -147,7 +147,7 @@ Yes: the Coolify VPS (or a dedicated edge VPS next to it) can terminate `*.arksm
 Provision Shop
   → Deployment Profile
   → Coolify API (deploy)
-  → Register Routing Target + Ingress Endpoint (ARK Cloud)
+  → Register Routing Target + Ingress Endpoint (ARK Platform)
   → Edge reload (Traefik)
 ```
 

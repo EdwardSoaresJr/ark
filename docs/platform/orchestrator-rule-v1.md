@@ -1,6 +1,6 @@
 # Orchestrator Rule v1
 
-**Status:** Locked — engineering discipline for ARK Cloud  
+**Status:** Locked — engineering discipline for ARK Platform  
 **Date:** 2026-07-19  
 **Companions:** [adapter-rule-v1.md](adapter-rule-v1.md) · [architecture-phase-1-complete.md](architecture-phase-1-complete.md)
 
@@ -67,7 +67,7 @@ Not for dashboards today — so Shop #27 at 2 AM shows which step failed without
 | Operations | Repair Order | Workflow | Technicians / evidence |
 | Interpretation | Document | Interpretation flow | Human confirmation |
 | Stinson | Trip | Dispatch | Driver |
-| **ARK Cloud** | **ProvisioningRequest** | **Orchestrator** | **Adapters** |
+| **ARK Platform** | **ProvisioningRequest** | **Orchestrator** | **Adapters** |
 
 Script vs platform: a Coolify→Stancl→DNS chain is a script. Request → Orchestrator → Steps → Completed is a platform.
 

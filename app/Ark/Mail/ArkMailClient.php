@@ -2,7 +2,7 @@
 
 namespace App\Ark\Mail;
 
-use App\Ark\Cloud\CloudConnection;
+use App\Ark\Platform\PlatformConnection;
 use App\Ark\Install\InstallationIdentity;
 use App\Ark\Operations\Settings\ShopSettings;
 use Illuminate\Support\Facades\Http;
@@ -13,7 +13,7 @@ final class ArkMailClient
 {
     public function isConfigured(): bool
     {
-        $cloud = CloudConnection::current();
+        $cloud = PlatformConnection::current();
 
         return $cloud->isConnected()
             && filled(ShopSettings::current()->ark_mail_from_email);
@@ -21,7 +21,7 @@ final class ArkMailClient
 
     public function send(TransactionalMailEnvelope $envelope): TransactionalMailResult
     {
-        $cloud = CloudConnection::current();
+        $cloud = PlatformConnection::current();
         $base = $cloud->baseUrl();
         $path = '/api/v1/services/mail/messages/transactional';
         $credential = (string) $cloud->credential();

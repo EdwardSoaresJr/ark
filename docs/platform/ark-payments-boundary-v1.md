@@ -8,7 +8,7 @@
 | Layer | Owns |
 | --- | --- |
 | **ARK Core** | Payment **truth** — invoice, amount due, ledger, payment method, allocations, refunds/adjustments, receipts/documents, RO settlement |
-| **ARK Cloud Payments** (future) | Managed **provider connectivity** — OAuth, tokens, webhooks, terminals, payment links that charge cards |
+| **ARK Platform Payments** (future) | Managed **provider connectivity** — OAuth, tokens, webhooks, terminals, payment links that charge cards |
 | **Shop staff** | Recording external payments (cash, card taken elsewhere, check, other) on the repair order |
 
 Core does **not** ship turnkey processor credentials, OAuth, charging clients, or processor webhooks.
@@ -23,7 +23,7 @@ Historical schema (`payment_gateway_attempts`, legacy `square_*` settings column
 
 ## Portal / secure links
 
-Portal pay/deposit tokens identify an invoice or deposit request and show amount due. Card capture on those pages is reserved for future **ARK Cloud Payments** via **ARK Connect**.
+Portal pay/deposit tokens identify an invoice or deposit request and show amount due. Card capture on those pages is reserved for future **ARK Platform Payments** via **ARK Connect**.
 
 Until then, customers are directed to pay at the shop; staff record the payment in Core.
 
@@ -35,7 +35,7 @@ Starter Estimate Ready / Final Invoice secure links are a **restricted** Cloud i
 
 One Core installation is one operating shop/location.
 
-ARK Cloud may connect and organize many independent Core installations under an Account.
+ARK Platform may connect and organize many independent Core installations under an Account.
 
 Cross-location aggregation belongs to future **ARK Data**, not to making Core a multi-location database.
 
@@ -57,7 +57,7 @@ Do not add `location_id` fan-out across Core operational tables as Core multi-lo
 | Offering | Role |
 | --- | --- |
 | **ARK Core** | Free · open source · unlimited · self-hostable · one location per Core |
-| **ARK Cloud Starter** | Free forever · after explicit Cloud connect · Essential Delivery · 20 Cloud-enabled ROs/month · Estimate Ready · Final Invoice |
+| **ARK Platform Starter** | Free forever · after explicit Cloud connect · Essential Delivery · 20 Cloud-enabled ROs/month · Estimate Ready · Final Invoice |
 | **ARK Complete** | Working target ~$149/location/month · self-hosted Core + Complete Cloud/app bundle |
 | **ARK Complete Hosted** | Working target ~$199/location/month · same Complete capability + ARK-managed infrastructure uplift |
 

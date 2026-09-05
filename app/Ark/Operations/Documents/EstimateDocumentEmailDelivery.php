@@ -34,7 +34,7 @@ class EstimateDocumentEmailDelivery
         private readonly CreateOrReuseEstimateAccessTokenAction $estimateTokens,
         private readonly MarkEstimateAwaitingCustomerApprovalAction $markAwaitingApproval,
         private readonly OutboundTransactionalMail $outboundMail,
-        private readonly \App\Ark\Cloud\StarterClient $starter,
+        private readonly \App\Ark\Platform\StarterClient $starter,
     ) {}
 
     /**

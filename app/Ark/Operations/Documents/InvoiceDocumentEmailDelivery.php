@@ -32,7 +32,7 @@ class InvoiceDocumentEmailDelivery
         private readonly ConversationRecorder $conversations,
         private readonly CommunicationEventRecorder $communicationEvents,
         private readonly OutboundTransactionalMail $outboundMail,
-        private readonly \App\Ark\Cloud\StarterClient $starter,
+        private readonly \App\Ark\Platform\StarterClient $starter,
     ) {}
 
     public function send(RepairOrder $repairOrder, User $actor, string $recipientEmail, ?string $staffNote = null): void

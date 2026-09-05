@@ -1,9 +1,9 @@
 @php
     /** @var \App\Ark\Operations\Settings\ShopSettings $settings */
-    $catalog = \App\Ark\Cloud\ArkCloudServiceCatalog::forCurrentShop();
+    $catalog = \App\Ark\Platform\PlatformServiceCatalog::forCurrentShop();
     $connection = $catalog->connectionSummary();
     $services = $catalog->services();
-    $cloud = \App\Ark\Cloud\CloudConnection::current();
+    $cloud = \App\Ark\Platform\PlatformConnection::current();
     $cloud->clearExpiredPairing();
     $pairingCode = $cloud->pairingCode();
     $pairingPublicId = $cloud->pairingPublicId();
@@ -27,10 +27,10 @@
 <section x-show="active === 'ark-cloud'" x-cloak>
     <div class="space-y-4">
         <div class="border-b border-slate-200 pb-2">
-            <p class="text-[11px] font-bold uppercase tracking-wide text-slate-400">ARK Cloud</p>
+            <p class="text-[11px] font-bold uppercase tracking-wide text-slate-400">ARK Platform</p>
             <h2 class="text-base font-black text-slate-950">Managed ARK services</h2>
             <p class="mt-0.5 text-xs leading-5 text-slate-500">
-                Connect this Box to ARK Cloud for Mail, SMS, Voice, and other managed services. Core keeps shop operations; Cloud owns service configuration.
+                Connect this Box to ARK Platform for Mail, SMS, Voice, and other managed services. Core keeps shop operations; Cloud owns service configuration.
             </p>
         </div>
 
@@ -61,7 +61,7 @@
             @if ($connection['cloud_pairing'] && $pairingPublicId)
                 <div class="mt-3 rounded-sm border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950">
                     <p class="font-semibold">Connecting…</p>
-                    <p class="mt-1">Finish approval in ARK Cloud. This Box will complete the connection automatically.</p>
+                    <p class="mt-1">Finish approval in ARK Platform. This Box will complete the connection automatically.</p>
                     @if ($pairingCode)
                         <p class="mt-2">Pairing code (fallback): <span class="font-mono tracking-widest">{{ $pairingCode }}</span></p>
                     @endif
@@ -97,7 +97,7 @@
                         </label>
                     @endif
                     <button type="submit" class="inline-flex min-h-9 items-center justify-center rounded-sm bg-slate-950 px-4 text-xs font-semibold text-white hover:bg-slate-800">
-                        Connect ARK Cloud
+                        Connect ARK Platform
                     </button>
                 </form>
                 <details class="mt-3 text-xs text-slate-500">
@@ -125,7 +125,7 @@
                 @endif
                 @if ($starter)
                     <div class="mt-3 rounded-sm border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-950">
-                        <p class="font-semibold">ARK Cloud Starter · Free</p>
+                        <p class="font-semibold">ARK Platform Starter · Free</p>
                         <p class="mt-1">
                             {{ (int) $starter['used'] }} of {{ (int) $starter['limit'] }} included Cloud-enabled repair orders used this month.
                         </p>
@@ -144,7 +144,7 @@
                             rel="noopener noreferrer"
                             class="inline-flex min-h-9 items-center justify-center rounded-sm border border-slate-300 bg-white px-4 text-xs font-semibold text-slate-800 hover:bg-slate-50"
                         >
-                            Manage in ARK Cloud
+                            Manage in ARK Platform
                         </a>
                     @endif
                     <form method="POST" action="{{ route('operations.settings.shop.ark-cloud.disconnect') }}">

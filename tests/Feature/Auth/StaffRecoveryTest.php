@@ -1,8 +1,8 @@
 <?php
 
 use App\Ark\Auth\StaffRecoveryService;
-use App\Ark\Cloud\CloudConnection;
-use App\Ark\Cloud\EssentialDeliveryClient;
+use App\Ark\Platform\PlatformConnection;
+use App\Ark\Platform\EssentialDeliveryClient;
 use App\Ark\Install\EssentialDeliverySecret;
 use App\Ark\Install\RecoveryOwnerIdentity;
 use App\Models\StaffRecoveryChallenge;
@@ -64,7 +64,7 @@ test('paired box uses cloud credential for essential delivery signing', function
     config(['services.ark_cloud.base_url' => 'https://cloud.example.test']);
     RecoveryOwnerIdentity::write('owner@example.test');
 
-    CloudConnection::current()->completePairing(
+    PlatformConnection::current()->completePairing(
         'https://cloud.example.test',
         'paired-credential-secret-value-1234567890',
         'shop-public-id',

@@ -2,20 +2,20 @@
 
 namespace App\Ark\Mail;
 
-use App\Ark\Cloud\ArkCloudSignedRequest;
-use App\Ark\Cloud\CloudConnection;
+use App\Ark\Platform\PlatformSignedRequest;
+use App\Ark\Platform\PlatformConnection;
 use App\Ark\Operations\Settings\ShopSettings;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Pushes shop-owned Reply-To to ARK Cloud Mail.
+ * Pushes shop-owned Reply-To to ARK Platform Mail.
  */
 final class ArkMailIdentityClient
 {
     public function syncShopReplyTo(): bool
     {
-        $cloud = CloudConnection::current();
+        $cloud = PlatformConnection::current();
         if (! $cloud->isConnected() || ! filled($cloud->credential())) {
             return false;
         }
@@ -40,7 +40,7 @@ final class ArkMailIdentityClient
 
         try {
             $raw = json_encode($payload, JSON_THROW_ON_ERROR);
-            $headers = ArkCloudSignedRequest::headers('PUT', $path, $raw, (string) $cloud->credential());
+            $headers = PlatformSignedRequest::headers('PUT', $path, $raw, (string) $cloud->credential());
             $response = Http::withHeaders($headers)
                 ->timeout(12)
                 ->withBody($raw, 'application/json')

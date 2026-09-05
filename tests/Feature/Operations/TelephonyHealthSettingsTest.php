@@ -1,7 +1,7 @@
 <?php
 
-use App\Ark\Cloud\ArkCloudServiceCatalog;
-use App\Ark\Cloud\CloudConnection;
+use App\Ark\Platform\PlatformServiceCatalog;
+use App\Ark\Platform\PlatformConnection;
 use App\Ark\Operations\Settings\ShopSettings;
 use App\Ark\Operations\Telephony\TelephonyCallFlowSettings;
 use App\Ark\Operations\Telephony\TelephonyEndpoint;
@@ -41,13 +41,13 @@ test('settings ark cloud section shows connect and service catalog without provi
         ->withSession([WorkstationPresence::SESSION_BIND_DISMISSED => true])
         ->get(route('operations.settings.shop.edit', ['section' => 'ark-cloud']))
         ->assertOk()
-        ->assertSee('ARK Cloud')
-        ->assertSee('Connect ARK Cloud')
+        ->assertSee('ARK Platform')
+        ->assertSee('Connect ARK Platform')
         ->assertSee('ARK Mail')
         ->assertSee('ARK SMS')
         ->assertSee('ARK Voice')
         ->assertSee('Dragon AI')
-        ->assertSee('Requires ARK Cloud')
+        ->assertSee('Requires ARK Platform')
         ->assertDontSee('Account SID')
         ->assertDontSee('Auth token')
         ->assertDontSee('Test incoming call')
@@ -154,10 +154,10 @@ test('ark cloud service catalog renders Cloud projection when connected', functi
         ], 200),
     ]);
 
-    $services = ArkCloudServiceCatalog::forCurrentShop()->services();
+    $services = PlatformServiceCatalog::forCurrentShop()->services();
     $mail = collect($services)->firstWhere('key', 'mail');
 
     expect($mail['status'])->toBe('needs_setup')
         ->and($mail['status_label'])->toBe('Needs setup')
-        ->and(CloudConnection::current()->isConnected())->toBeTrue();
+        ->and(PlatformConnection::current()->isConnected())->toBeTrue();
 });

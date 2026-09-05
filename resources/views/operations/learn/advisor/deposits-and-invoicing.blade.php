@@ -2,7 +2,7 @@
     <h3>Deposits before exotic work</h3>
     <p>Deposits protect the shop on special-order parts and long diagnostic commits. Record deposit on the RO when money changes hands — not in a side spreadsheet.</p>
     <p>Counter deposits use the financial rail on the RO. Record cash, check, or card taken on an external terminal the same way — Core owns the ledger, not the processor.</p>
-    <p>Portal balance links can show amount due; online card capture belongs to future ARK Cloud Payments, not Core.</p>
+    <p>Portal balance links can show amount due; online card capture belongs to future ARK Platform Payments, not Core.</p>
     <p>Deposit updates adjust authorized balance due; totals remain server-authoritative through invoice generation. Never mentally subtract in Quick Reply payment messages.</p>
     <p>Shop policy on deposit percentage lives in training and owner targets — ARK records what you actually collected.</p>
 

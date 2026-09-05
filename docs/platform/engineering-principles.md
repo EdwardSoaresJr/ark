@@ -55,7 +55,7 @@ Do not invent `PlatformOperation`, multi-region routing, or cluster balancers fr
    Sprint 2 = Coolify step only. If the spine must move, stop and ask whether pressure earned a new concept — or the adapter is wrong.
 
 10. **Same language across products.**  
-    ARK Operations, Companion, Stinson, ARK Cloud: authorities own truth · workflows are requests · orchestrators coordinate · adapters touch infrastructure.
+    ARK Operations, Companion, Stinson, ARK Platform: authorities own truth · workflows are requests · orchestrators coordinate · adapters touch infrastructure.
 
 11. **Defend the boundary.**  
     If an implementation detail reaches upward, stop. If business truth reaches downward, stop. The boundary exists to be defended.

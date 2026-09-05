@@ -1,6 +1,6 @@
 <?php
 
-use App\Ark\Cloud\Http\ArkCloudConnectController;
+use App\Ark\Platform\Http\PlatformConnectController;
 use App\Ark\Import\ShopCsv\ShopCsvImportController;
 use App\Ark\Operations\Appointments\RemoveScheduleBayController;
 use App\Ark\Operations\Appointments\StoreScheduleBayController;
@@ -9,7 +9,7 @@ use App\Ark\Operations\Inspections\InspectionTemplateSettingsController;
 use App\Ark\Operations\RepairOrders\Status\RepairOrderStatusCatalogSettingsController;
 use App\Ark\Operations\Settings\DragonMemorySettingsController;
 use App\Ark\Operations\Settings\LaborPolicySettingsController;
-use App\Ark\Operations\Settings\ShopCloudSettingsController;
+use App\Ark\Operations\Settings\ShopPlatformSettingsController;
 use App\Ark\Operations\Settings\ShopCommunicationsSettingsController;
 use App\Ark\Operations\Settings\ShopFinancialSettingsController;
 use App\Ark\Operations\Settings\ShopGeneralSettingsController;
@@ -72,28 +72,28 @@ Route::middleware('permission:'.ArkCapability::SettingsManage->value)->group(fun
     Route::patch('/app/settings/shop/email', [ShopIntegrationSettingsController::class, 'updateEmail'])
         ->name('operations.settings.shop.email.update');
 
-    Route::post('/app/settings/shop/ark-cloud/connect', [ShopCloudSettingsController::class, 'connect'])
+    Route::post('/app/settings/shop/ark-cloud/connect', [ShopPlatformSettingsController::class, 'connect'])
         ->name('operations.settings.shop.ark-cloud.connect');
 
-    Route::post('/app/settings/shop/ark-cloud/claim', [ShopCloudSettingsController::class, 'claim'])
+    Route::post('/app/settings/shop/ark-cloud/claim', [ShopPlatformSettingsController::class, 'claim'])
         ->name('operations.settings.shop.ark-cloud.claim');
 
-    Route::post('/app/settings/shop/ark-cloud/disconnect', [ShopCloudSettingsController::class, 'disconnect'])
+    Route::post('/app/settings/shop/ark-cloud/disconnect', [ShopPlatformSettingsController::class, 'disconnect'])
         ->name('operations.settings.shop.ark-cloud.disconnect');
 
-    Route::post('/app/settings/shop/ark-cloud/connect-manual', [ArkCloudConnectController::class, 'startManual'])
+    Route::post('/app/settings/shop/ark-cloud/connect-manual', [PlatformConnectController::class, 'startManual'])
         ->name('operations.settings.shop.ark-cloud.connect-manual');
 
-    Route::get('/app/cloud/connecting', [ArkCloudConnectController::class, 'connecting'])
+    Route::get('/app/cloud/connecting', [PlatformConnectController::class, 'connecting'])
         ->name('operations.cloud.connecting');
 
-    Route::get('/app/cloud/connecting/poll', [ArkCloudConnectController::class, 'poll'])
+    Route::get('/app/cloud/connecting/poll', [PlatformConnectController::class, 'poll'])
         ->name('operations.cloud.poll');
 
-    Route::post('/app/cloud/connect', [ArkCloudConnectController::class, 'start'])
+    Route::post('/app/cloud/connect', [PlatformConnectController::class, 'start'])
         ->name('operations.cloud.connect');
 
-    Route::get('/app/cloud/connect-after-setup', [ArkCloudConnectController::class, 'startAfterSetup'])
+    Route::get('/app/cloud/connect-after-setup', [PlatformConnectController::class, 'startAfterSetup'])
         ->name('operations.cloud.connect-after-setup');
 
     Route::post('/app/settings/shop/email/ark-mail/enable', [ShopIntegrationSettingsController::class, 'enableArkMail'])

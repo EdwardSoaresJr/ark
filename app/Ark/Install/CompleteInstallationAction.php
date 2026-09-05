@@ -110,7 +110,7 @@ final class CompleteInstallationAction
             InstallationIdentity::write((string) \Illuminate\Support\Str::uuid());
             RecoveryOwnerIdentity::write($input['admin']['email']);
             InstallationState::markInstalled();
-            // Essential Delivery registers only after explicit ARK Cloud connection.
+            // Essential Delivery registers only after explicit ARK Platform connection.
             Log::info('installer.completed');
 
             try {

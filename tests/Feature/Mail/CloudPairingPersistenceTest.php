@@ -1,6 +1,6 @@
 <?php
 
-use App\Ark\Cloud\CloudConnection;
+use App\Ark\Platform\PlatformConnection;
 use App\Ark\Mail\ArkMailActivationClient;
 use App\Ark\Operations\Settings\ShopSettings;
 use Illuminate\Support\Facades\Http;
@@ -32,7 +32,7 @@ it('persists pairing state outside the session', function () {
 
     // Simulate a new request / process: no session flash required.
     $settings = ShopSettings::current()->fresh();
-    $cloud = new CloudConnection($settings);
+    $cloud = new PlatformConnection($settings);
 
     expect($cloud->isPairing())->toBeTrue()
         ->and($cloud->pairingPublicId())->toBe($pairingPublicId)
@@ -66,7 +66,7 @@ it('stores the cloud credential on the cloud connection after claim', function (
     app(ArkMailActivationClient::class)->claimPairing();
 
     $settings = ShopSettings::current()->fresh();
-    $cloud = new CloudConnection($settings);
+    $cloud = new PlatformConnection($settings);
 
     expect($cloud->isConnected())->toBeTrue()
         ->and($cloud->credential())->toBe('arkcloud_test_secret_value')
@@ -85,7 +85,7 @@ it('clears expired pairing state', function () {
         'ark_mail_status' => 'pairing',
     ]);
 
-    $cloud = CloudConnection::current();
+    $cloud = PlatformConnection::current();
     expect($cloud->isPairing())->toBeFalse();
 
     $settings = ShopSettings::current()->fresh();

@@ -37,7 +37,7 @@
             <p>
                 Online card payment is not available on this estimate. Please contact the shop to pay this deposit, or ask staff to record it in ARK.
             </p>
-            {{-- Seam: managed online pay belongs to ARK Cloud Payments (future). --}}
+            {{-- Seam: managed online pay belongs to ARK Platform Payments (future). --}}
         @endif
     </div>
 </section>

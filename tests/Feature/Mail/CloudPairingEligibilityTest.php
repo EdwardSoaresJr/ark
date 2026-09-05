@@ -9,6 +9,7 @@ it('lets a completed installation start Cloud pairing without a Core rollout fla
     $this->app['env'] = 'production';
 
     config([
+        'services.ark_platform.base_url' => 'https://cloud.example.test',
         'services.ark_cloud.base_url' => 'https://cloud.example.test',
     ]);
 
@@ -33,16 +34,19 @@ it('lets a completed installation start Cloud pairing without a Core rollout fla
 });
 
 it('rejects Cloud pairing start when Core installation is not complete', function () {
-    $this->app['env'] = 'production';
-
     config([
+        'services.ark_platform.base_url' => 'https://cloud.example.test',
         'services.ark_cloud.base_url' => 'https://cloud.example.test',
     ]);
 
+    Http::fake();
+
     InstallationState::resetForTests();
 
+    expect(InstallationState::isInstalled())->toBeFalse();
+
     expect(fn () => app(ArkMailActivationClient::class)->activate())
-        ->toThrow(RuntimeException::class, 'Finish installing ARK before connecting to ARK Cloud.');
+        ->toThrow(RuntimeException::class, 'Finish installing ARK before connecting to ARK Platform.');
 
     Http::assertNothingSent();
 });

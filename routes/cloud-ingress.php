@@ -1,7 +1,7 @@
 <?php
 
-use App\Ark\Cloud\Http\FabricIngressController;
-use App\Ark\Cloud\Http\VerifyCloudFabricSignature;
+use App\Ark\Platform\Http\FabricIngressController;
+use App\Ark\Platform\Http\VerifyPlatformFabricSignature;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -10,5 +10,5 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::post('/webhooks/cloud/fabric/events', FabricIngressController::class)
-    ->middleware(VerifyCloudFabricSignature::class)
+    ->middleware(VerifyPlatformFabricSignature::class)
     ->name('webhooks.cloud.fabric.events');

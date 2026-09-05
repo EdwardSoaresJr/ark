@@ -1,6 +1,6 @@
 <?php
 
-use App\Ark\Cloud\EssentialDeliveryClient;
+use App\Ark\Platform\EssentialDeliveryClient;
 use App\Ark\Install\EssentialDeliverySecret;
 use App\Ark\Install\InstallationIdentity;
 use App\Ark\Install\InstallationState;

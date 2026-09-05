@@ -10,7 +10,7 @@ beforeEach(function () {
     ]);
 });
 
-it('does not host the ARK Cloud product portal on the Core Box', function () {
+it('does not host the ARK Platform product portal on the Core Box', function () {
     $this->get('/cloud')->assertRedirect('https://cloud.arksms.com');
     $this->get('/cloud/login')->assertRedirect('https://cloud.arksms.com/login');
     $this->get('/cloud/dashboard')->assertRedirect('https://cloud.arksms.com/dashboard');

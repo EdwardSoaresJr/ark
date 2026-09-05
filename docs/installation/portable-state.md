@@ -51,11 +51,11 @@ Restore onto a fresh host:
 2. Do **not** run `install-bootstrap` against an empty secrets file when MySQL data already exists — bootstrap detects existing MySQL without secrets and fails closed.
 3. Open the shop URL and verify customers, repair orders, and media.
 
-Automated backup/restore tooling and ARK Cloud “Move to managed hosting” are future product paths. The boundary above is what those tools must preserve.
+Automated backup/restore tooling and ARK Platform “Move to managed hosting” are future product paths. The boundary above is what those tools must preserve.
 
 ## Installation identity
 
-`InstallationIdentity` writes a durable UUID to `storage/app/install/installation_uuid`. It identifies this Box to ARK Cloud pairing APIs. It is **not** an authentication secret, but it should move with `ark_storage` so Cloud pairings survive migration.
+`InstallationIdentity` writes a durable UUID to `storage/app/install/installation_uuid`. It identifies this Box to ARK Platform pairing APIs. It is **not** an authentication secret, but it should move with `ark_storage` so Cloud pairings survive migration.
 
 ## Verification target (stranger box)
 

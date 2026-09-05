@@ -1,7 +1,7 @@
 <?php
 
-use App\Ark\Cloud\CloudConnection;
-use App\Ark\Cloud\StarterClient;
+use App\Ark\Platform\PlatformConnection;
+use App\Ark\Platform\StarterClient;
 use App\Ark\Install\InstallationIdentity;
 use App\Ark\Operations\RepairOrders\RepairOrderStatus;
 use App\Ark\Operations\Settings\ShopSettings;
@@ -84,7 +84,7 @@ test('starter allowance exhausted does not pretend core is blocked', function ()
 });
 
 test('disconnected core does not report starter available', function () {
-    CloudConnection::current()->clear();
+    PlatformConnection::current()->clear();
 
     expect(app(StarterClient::class)->isAvailable())->toBeFalse();
 });

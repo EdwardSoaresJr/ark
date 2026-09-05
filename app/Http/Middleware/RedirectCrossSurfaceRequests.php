@@ -15,7 +15,7 @@ class RedirectCrossSurfaceRequests
         $host = $request->getHost();
         $uri = $request->getRequestUri();
 
-        // Company product: www → apex (ARK Cloud).
+        // Company product: www → apex (ARK Platform).
         $companyHost = SurfaceRouting::companyHost();
         $companyWww = SurfaceRouting::companyWwwHost();
         if ($companyHost !== null && $companyWww !== null && $host === $companyWww) {

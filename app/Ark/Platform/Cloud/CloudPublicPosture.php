@@ -39,6 +39,6 @@ final class CloudPublicPosture
 
     public static function primaryCtaLabel(): string
     {
-        return self::signupsOpen() ? 'Start Free Trial' : 'Sign in to ARK Cloud';
+        return self::signupsOpen() ? 'Start Free Trial' : 'Sign in to ARK Complete';
     }
 }

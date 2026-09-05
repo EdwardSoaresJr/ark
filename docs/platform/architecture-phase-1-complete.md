@@ -1,4 +1,4 @@
-# ARK Cloud — Architecture Phase 1 Complete
+# ARK Platform — Architecture Phase 1 Complete
 
 **Status:** Closed 2026-07-19  
 **Next:** [Engineering Phase 1 — Adapters](engineering-phase-1-adapters.md)  
@@ -35,7 +35,7 @@ Adapters (replaceable)
 | [orchestrator-rule-v1.md](orchestrator-rule-v1.md) | Orchestrator coordinates only — no infra work |
 | [deployment-flow-v1.md](deployment-flow-v1.md) | Provisioning v1 = truth → STOP |
 
-**Language is finished.** This is ARK Cloud’s operating system (not its infrastructure). Implementation should feel mechanical: domain tells adapters what to do; adapters never redefine the domain.
+**Language is finished.** This is ARK Platform’s operating system (not its infrastructure). Implementation should feel mechanical: domain tells adapters what to do; adapters never redefine the domain.
 
 **Stop freezing doctrine** until operational pressure earns the next authority.  
 Implementation practice: [engineering-principles.md](engineering-principles.md) (guardrails, not new architecture).  
@@ -52,7 +52,7 @@ Not Coolify. Not Stancl. Not a hosted shop.
 | Domain | Request / work | Coordinator | Hands |
 | --- | --- | --- | --- |
 | Operations | Repair Order | Workflow | Technicians |
-| ARK Cloud | ProvisioningRequest | Orchestrator | Adapters |
+| ARK Platform | ProvisioningRequest | Orchestrator | Adapters |
 | Stinson | Trip | Dispatch | Driver |
 | Interpretation | Evidence | Interpretation | Human confirmation |
 

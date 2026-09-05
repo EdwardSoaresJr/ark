@@ -13,7 +13,7 @@
 
 1. Advisor records cash / card (external) / check on the RO financial rail.
 2. Optional: Send Pay Link / deposit request → customer sees amount + shop contact (no card form).
-3. Managed online pay / terminal capture → ARK Cloud Payments (future), not this Core tree.
+3. Managed online pay / terminal capture → ARK Platform Payments (future), not this Core tree.
 
 ## Baseline
 

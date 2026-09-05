@@ -3,17 +3,19 @@
 namespace App\Ark\Platform\Cloud;
 
 /**
- * External ARK Cloud URLs (control plane / portal).
+ * External ARK Complete / company portal URLs.
  *
- * Core Boxes never host the Cloud product portal. These point at
- * ARK_CLOUD_BASE_URL (e.g. https://cloud.arksms.com).
+ * Core Boxes never host the managed-service portal. These point at
+ * ARK_PLATFORM_BASE_URL (alias ARK_CLOUD_BASE_URL), e.g. https://cloud.arksms.com
+ * during the DNS compatibility period.
  */
 final class CloudUrls
 {
     public static function base(): string
     {
         return rtrim((string) (
-            config('services.ark_cloud.base_url')
+            config('services.ark_platform.base_url')
+            ?: config('services.ark_cloud.base_url')
             ?: config('services.ark_mail.base_url')
             ?: ''
         ), '/');

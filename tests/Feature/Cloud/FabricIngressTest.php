@@ -1,7 +1,7 @@
 <?php
 
-use App\Ark\Cloud\CloudConnection;
-use App\Ark\Cloud\Http\VerifyCloudFabricSignature;
+use App\Ark\Platform\PlatformConnection;
+use App\Ark\Platform\Http\VerifyPlatformFabricSignature;
 use App\Ark\Install\InstallationIdentity;
 use App\Ark\Operations\Communications\Events\CommsInterruptReceived;
 use App\Ark\Operations\Settings\ShopSettings;
@@ -34,13 +34,13 @@ function fabricSignedRequest(array $body, ?string $installationId = null, ?strin
     $timestamp = (string) time();
     $nonce ??= Str::random(24);
     $installationId ??= InstallationIdentity::uuid();
-    $credential ??= (string) CloudConnection::current()->credential();
+    $credential ??= (string) PlatformConnection::current()->credential();
 
     $signature = hash_hmac('sha256', implode("\n", [
         $timestamp,
         $nonce,
         'POST',
-        VerifyCloudFabricSignature::PATH,
+        VerifyPlatformFabricSignature::PATH,
         hash('sha256', $raw),
     ]), $credential);
 
@@ -181,7 +181,7 @@ test('fabric ingress rejects unknown operation', function () {
 });
 
 test('fabric ingress rejects when cloud not connected', function () {
-    CloudConnection::current()->clear();
+    PlatformConnection::current()->clear();
     Cache::flush();
 
     $body = [
@@ -203,7 +203,7 @@ test('fabric ingress rejects when cloud not connected', function () {
         $timestamp,
         $nonce,
         'POST',
-        VerifyCloudFabricSignature::PATH,
+        VerifyPlatformFabricSignature::PATH,
         hash('sha256', $raw),
     ]), 'stale-credential-after-disconnect!!!!');
 

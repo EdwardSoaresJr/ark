@@ -42,7 +42,7 @@
             <p class="mt-1">
                 Online card payment is not available on this link. Please contact the shop to pay, or ask staff to record your payment in ARK.
             </p>
-            {{-- Seam: managed online pay belongs to ARK Cloud Payments (future). --}}
+            {{-- Seam: managed online pay belongs to ARK Platform Payments (future). --}}
         </div>
 
         @include('portal.partials.vehicle-records-link', [

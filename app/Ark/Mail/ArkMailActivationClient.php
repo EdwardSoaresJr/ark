@@ -2,7 +2,7 @@
 
 namespace App\Ark\Mail;
 
-use App\Ark\Cloud\CloudConnection;
+use App\Ark\Platform\PlatformConnection;
 use App\Ark\Install\InstallationIdentity;
 use App\Ark\Install\InstallationState;
 use App\Ark\Operations\Settings\ShopSettings;
@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 /**
  * Starts and finishes Cloud pairing from Settings → Email.
  *
- * Sequence: startPairing → approve in ARK Cloud → claimPairing.
+ * Sequence: startPairing → approve in ARK Platform → claimPairing.
  */
 final class ArkMailActivationClient
 {
@@ -38,7 +38,7 @@ final class ArkMailActivationClient
         $pairingCode = (string) $response->json('pairing_code');
         $expiresAt = (string) $response->json('expires_at');
 
-        CloudConnection::current()->beginPairing(
+        PlatformConnection::current()->beginPairing(
             $base,
             $pairingPublicId,
             $pairingCode,
@@ -58,7 +58,7 @@ final class ArkMailActivationClient
      */
     public function claimPairing(?string $pairingPublicId = null, ?string $serviceUrl = null): array
     {
-        $cloud = CloudConnection::current();
+        $cloud = PlatformConnection::current();
         $cloud->clearExpiredPairing();
 
         $pairingPublicId = $pairingPublicId ?: $cloud->pairingPublicId();
@@ -81,7 +81,7 @@ final class ArkMailActivationClient
 
         $credential = $response->json('credential');
         if (! is_string($credential) || $credential === '') {
-            throw new \RuntimeException('ARK Cloud did not return a connection credential.');
+            throw new \RuntimeException('ARK Platform did not return a connection credential.');
         }
 
         $shopPublicId = $response->json('shop_public_id');
@@ -100,9 +100,9 @@ final class ArkMailActivationClient
         }
 
         // Essential Delivery is installation infrastructure after explicit Cloud connect — not at /setup.
-        app(\App\Ark\Cloud\EssentialDeliveryClient::class)->registerAtInstall($base);
+        app(\App\Ark\Platform\EssentialDeliveryClient::class)->registerAtInstall($base);
 
-        app(\App\Ark\Cloud\CloudStatusClient::class)->fetchAndPersistLocalMailProjection();
+        app(\App\Ark\Platform\PlatformStatusClient::class)->fetchAndPersistLocalMailProjection();
         app(ArkMailIdentityClient::class)->syncShopReplyTo();
 
         Log::info('ark_cloud.paired', [
@@ -122,7 +122,7 @@ final class ArkMailActivationClient
     public function activate(?string $serviceUrl = null): array
     {
         if (! InstallationState::isInstalled()) {
-            throw new \RuntimeException('Finish installing ARK before connecting to ARK Cloud.');
+            throw new \RuntimeException('Finish installing ARK before connecting to ARK Platform.');
         }
 
         $started = $this->startPairing($serviceUrl);
@@ -132,26 +132,27 @@ final class ArkMailActivationClient
             'pairing_code' => $started['pairing_code'],
             'pairing_public_id' => $started['pairing_public_id'],
             'expires_at' => $started['expires_at'],
-            'message' => 'Approve this code in ARK Cloud, then finish connecting here.',
+            'message' => 'Approve this code in ARK Platform, then finish connecting here.',
         ];
     }
 
     public function disconnect(): void
     {
-        CloudConnection::current()->clear();
+        PlatformConnection::current()->clear();
     }
 
     private function baseUrl(?string $serviceUrl = null): string
     {
         $base = rtrim((string) (
             $serviceUrl
-            ?: CloudConnection::current()->baseUrl()
+            ?: PlatformConnection::current()->baseUrl()
+            ?: config('services.ark_platform.base_url')
             ?: config('services.ark_cloud.base_url')
             ?: config('services.ark_mail.base_url')
         ), '/');
 
         if ($base === '') {
-            throw new \RuntimeException('ARK Cloud URL is not configured.');
+            throw new \RuntimeException('ARK Platform URL is not configured.');
         }
 
         return $base;

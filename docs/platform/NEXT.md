@@ -1,6 +1,6 @@
 # Next
 
-**Company product:** `autorepairkeeper.com` is ARK Cloud.
+**Company product:** `autorepairkeeper.com` is ARK Platform.
 
 **v1 finish line:** Shop owner discovers ARK → signs up → workspace → first repair order → keeps paying — without talking to Edward.
 

@@ -14,7 +14,7 @@ Software that **belongs to** repair shops — not software *for* them.
 
 | Product | Feeling | Role |
 | --- | --- | --- |
-| **ARK Cloud** | This is my shop. | Platform provisions it. |
+| **ARK Platform** | This is my shop. | Platform provisions it. |
 | **ARKv2** | This is my work. | Workspace supports it. |
 | **Companion** | My customers can reach my shop. | Communication supports it. |
 | **Website** | The internet understands my shop. | Public presence supports it. |

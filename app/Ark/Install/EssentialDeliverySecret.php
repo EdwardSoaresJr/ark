@@ -6,7 +6,7 @@ use Illuminate\Support\Str;
 
 /**
  * Installation-scoped secret for Essential Delivery before Cloud pairing.
- * After pairing, CloudConnection credential is preferred for signing.
+ * After pairing, PlatformConnection credential is preferred for signing.
  */
 final class EssentialDeliverySecret
 {

@@ -1,6 +1,6 @@
 <?php
 
-use App\Ark\Operations\Settings\ShopCloudSettingsController;
+use App\Ark\Operations\Settings\ShopPlatformSettingsController;
 use App\Ark\Operations\Settings\ShopCommunicationsSettingsController;
 use App\Ark\Runtime\Authorization\ArkRole;
 use App\Models\User;
@@ -8,13 +8,14 @@ use Database\Seeders\ArkAuthorizationSeeder;
 use Illuminate\Support\Facades\Http;
 
 test('cloud and customer-messaging settings controllers load without estimate trait contracts', function () {
-    expect(new ShopCloudSettingsController)->toBeInstanceOf(ShopCloudSettingsController::class)
+    expect(new ShopPlatformSettingsController)->toBeInstanceOf(ShopPlatformSettingsController::class)
         ->and(new ShopCommunicationsSettingsController)->toBeInstanceOf(ShopCommunicationsSettingsController::class);
 });
 
 test('ark cloud connect action opens browser connection continuation', function () {
     $this->seed(ArkAuthorizationSeeder::class);
     config([
+        'services.ark_platform.base_url' => 'https://cloud.example.test',
         'services.ark_cloud.base_url' => 'https://cloud.example.test',
         'services.ark_mail.base_url' => 'https://cloud.example.test',
     ]);

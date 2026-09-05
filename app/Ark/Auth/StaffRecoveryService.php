@@ -2,7 +2,7 @@
 
 namespace App\Ark\Auth;
 
-use App\Ark\Cloud\EssentialDeliveryClient;
+use App\Ark\Platform\EssentialDeliveryClient;
 use App\Ark\Install\RecoveryOwnerIdentity;
 use App\Models\StaffRecoveryChallenge;
 use App\Models\User;

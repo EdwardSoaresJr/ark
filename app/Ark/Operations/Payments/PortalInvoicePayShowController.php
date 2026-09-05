@@ -37,7 +37,7 @@ class PortalInvoicePayShowController
         $shopPhoneTel = preg_replace('/\D+/', '', (string) $shop->phone) ?: null;
         $vehicleRecords = $vehicleRecordsLink->forVehicle($portalCustomer, $repairOrder->vehicle);
 
-        // View/balance link only. Managed online card capture belongs to ARK Cloud Payments (future).
+        // View/balance link only. Managed online card capture belongs to ARK Platform Payments (future).
 
         if ($accessToken->isDepositRequest()) {
             $amountCents = (int) $accessToken->amount_cents;

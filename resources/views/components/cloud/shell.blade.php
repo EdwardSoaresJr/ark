@@ -1,5 +1,5 @@
 @props([
-    'title' => 'ARK Cloud',
+    'title' => 'ARK Platform',
     'nav' => true,
     'footer' => true,
     'wide' => false,

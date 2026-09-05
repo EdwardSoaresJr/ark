@@ -27,7 +27,7 @@ Bootstrap Adapter
 Email Adapter
 ```
 
-Above the line: **ARK Cloud platform truth** (authorities).  
+Above the line: **ARK Platform platform truth** (authorities).  
 Below the line: **adapters** — interchangeable engineering.
 
 Nothing in the authority stack requires Laravel, Docker, Coolify, Cloudflare, Vultr, or Stancl. Those are implementations.

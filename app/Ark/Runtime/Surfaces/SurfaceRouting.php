@@ -38,7 +38,7 @@ final class SurfaceRouting
         return filled($host) ? (string) $host : null;
     }
 
-    /** Company product host — ARK Cloud (marketing + trial + cloud dashboard). */
+    /** Company product host — ARK Platform (marketing + trial + cloud dashboard). */
     public static function companyHost(): ?string
     {
         $host = config('surfaces.company');

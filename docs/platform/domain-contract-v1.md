@@ -24,7 +24,7 @@ Provisioning provisions a Shop. Billing bills a Shop. Communications and operati
 ## Audiences (three hosts, three jobs)
 
 ```text
-I want ARK          →  autorepairkeeper.com          (ARK Cloud — the product)
+I want ARK          →  autorepairkeeper.com          (ARK Platform — the product)
 I manage ARK        →  app.autorepairkeeper.com      (Auth + Cloud dashboard — Phase 2+)
 I work here         →  {shop}.arksms.com             (shop workspace)
 I'm a customer      →  {custom domain}  (or trial preview)
@@ -40,7 +40,7 @@ I'm a customer      →  {custom domain}  (or trial preview)
 | --- | --- |
 | **Domain** | `autorepairkeeper.com` (+ `www` → apex) |
 | **Audience** | Prospective customers + new owners |
-| **Owns** | ARK Cloud product — Home · Features · Pricing · Resources · Login · Trial · Become · Arrive · Cloud dashboard (Phase 1) |
+| **Owns** | ARK Platform product — Home · Features · Pricing · Resources · Login · Trial · Become · Arrive · Cloud dashboard (Phase 1) |
 | **Stancl** | Central domain — not a Shop |
 
 No Shop routing. No operations. No customer portal.
