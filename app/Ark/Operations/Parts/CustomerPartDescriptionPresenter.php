@@ -26,11 +26,24 @@ final class CustomerPartDescriptionPresenter
      * @var array<string, string>
      */
     private const CATEGORY_PATTERNS = [
-        'spark plug' => 'Spark Plug',
+        'spark plug wire set' => 'Spark Plug Wire Set',
+        'spark plug wires' => 'Spark Plug Wire Set',
+        'spark plug wire' => 'Spark Plug Wire Set',
+        'distributor rotor' => 'Distributor Rotor',
+        'distributor cap' => 'Distributor Cap',
+        'control arm and ball joint assembly' => 'Control Arm and Ball Joint Assembly',
+        'control arm and ball joint' => 'Control Arm and Ball Joint Assembly',
+        'thermostat housing assembly' => 'Thermostat Housing',
+        'thermostat housing' => 'Thermostat Housing',
+        'disc brake pad set' => 'Brake Pad Set',
         'disc brake pad' => 'Brake Pad',
+        'brake pad set' => 'Brake Pad Set',
         'brake pad' => 'Brake Pad',
         'brake rotor' => 'Brake Rotor',
+        'spark plug' => 'Spark Plug',
         'water pump' => 'Water Pump',
+        'pcv valve' => 'PCV Valve',
+        'ignition coil' => 'Ignition Coil',
         'coolant temperature sensor' => 'Temperature Sensor',
         'coolant temp sensor' => 'Temperature Sensor',
         'radiator hose' => 'Radiator Hose',
@@ -52,6 +65,42 @@ final class CustomerPartDescriptionPresenter
         'tensioner' => 'Belt Tensioner',
         'belt' => 'Belt',
         'plug' => 'Spark Plug',
+    ];
+
+    /** Catalog / product-line phrases safe to strip after brand removal. */
+    private const PRODUCT_LINE_TOKENS = [
+        'oe solutions',
+        'problem solver',
+        'copper plus',
+        'select wires',
+        'wires',
+        'genuine manufacturer parts',
+        'gm original equipment',
+        'original equipment',
+        'blue streak',
+        'ultima',
+    ];
+
+    /** Trailing merchandising words dropped once a category is known. */
+    private const MERCHANDISING_TOKENS = [
+        'copper plus',
+        'problem solver',
+        'oe solutions',
+        'select wires',
+        'wires',
+        'engine coolant',
+        'laser',
+        'iridium',
+        'platinum',
+        'gold',
+        'professional',
+        'ultra',
+        'premium',
+        'standard',
+        'select',
+        'suspension',
+        'engine',
+        'coolant',
     ];
 
     /** @var list<string> */
@@ -93,6 +142,12 @@ final class CustomerPartDescriptionPresenter
         'continental',
         'denso',
         'gates',
+        'champion',
+        'dorman',
+        'stant',
+        'fel-pro',
+        'felpro',
+        'prestone',
         'select',
     ];
 
@@ -137,6 +192,21 @@ final class CustomerPartDescriptionPresenter
     }
 
     /**
+     * Deterministic customer-facing label from procurement identity (no override).
+     *
+     * @param  list<string>  $siblingPartDescriptions
+     */
+    public function generate(string $inventoryDescription, ?string $brand = null, array $siblingPartDescriptions = []): string
+    {
+        return $this->resolve(
+            customerDescription: null,
+            inventoryDescription: $inventoryDescription,
+            siblingPartDescriptions: $siblingPartDescriptions,
+            brand: $brand,
+        );
+    }
+
+    /**
      * @param  array<string, mixed>  $line
      * @param  list<string>  $siblingPartDescriptions
      */
@@ -160,6 +230,7 @@ final class CustomerPartDescriptionPresenter
         ?string $customerDescription,
         string $inventoryDescription,
         array $siblingPartDescriptions = [],
+        ?string $brand = null,
     ): string {
         $explicit = trim((string) $customerDescription);
 
@@ -173,6 +244,7 @@ final class CustomerPartDescriptionPresenter
             return '';
         }
 
+        $description = $this->stripStructuredBrand($description, $brand);
         $normalized = mb_strtolower($description);
         $preservedBrand = $this->detectPreservedBrand($normalized);
 
@@ -182,7 +254,7 @@ final class CustomerPartDescriptionPresenter
 
         $category = $this->detectCategoryLabel($normalized);
 
-        if ($category === 'Brake Pad') {
+        if ($category === 'Brake Pad' || $category === 'Brake Pad Set') {
             return $this->presentBrakePadLabel($description);
         }
 
@@ -201,10 +273,201 @@ final class CustomerPartDescriptionPresenter
         }
 
         if ($category !== null) {
-            return $category;
+            return $this->presentCategoryWithFitment($description, $category);
         }
 
         return $this->fallbackCleanedLabel($description);
+    }
+
+    private function stripStructuredBrand(string $description, ?string $brand): string
+    {
+        $brand = trim((string) $brand);
+
+        if ($brand === '') {
+            return $description;
+        }
+
+        $pattern = '/^'.preg_quote($brand, '/').'\b[\s\-–—:]*/iu';
+
+        return $this->normalizeSpacing((string) preg_replace($pattern, '', $description));
+    }
+
+    private function presentCategoryWithFitment(string $description, string $category): string
+    {
+        $cleaned = $this->stripCatalogNoise($description);
+        $normalized = mb_strtolower($cleaned);
+        $categoryNormalized = mb_strtolower($category);
+        $position = mb_strpos($normalized, $categoryNormalized);
+
+        if ($position === false) {
+            return $category;
+        }
+
+        $prefix = $this->normalizeSpacing(mb_substr($cleaned, 0, $position));
+        $suffix = $this->normalizeSpacing(mb_substr($cleaned, $position + mb_strlen($category)));
+
+        $positional = $this->extractLeadingPositional($prefix);
+        $meaningfulSuffix = $this->extractMeaningfulQualifierSuffix($suffix, $category);
+
+        // Bare category unless fitment qualifiers are present — avoids catalog merchandising leakage.
+        if ($positional === '' && $meaningfulSuffix === '') {
+            return $category;
+        }
+
+        return $this->normalizeSpacing(trim($positional.' '.$category.' '.$meaningfulSuffix));
+    }
+
+    private function stripCatalogNoise(string $description): string
+    {
+        $cleaned = $description;
+
+        foreach ($this->houseBrandTokensLongestFirst() as $token) {
+            $cleaned = preg_replace('/\b'.preg_quote($token, '/').'\b/i', ' ', $cleaned) ?? $cleaned;
+        }
+
+        foreach ($this->productLineTokensLongestFirst() as $token) {
+            $cleaned = preg_replace('/\b'.preg_quote($token, '/').'\b/i', ' ', $cleaned) ?? $cleaned;
+        }
+
+        $cleaned = $this->stripPartNumberTokens($cleaned);
+        $cleaned = preg_replace('/\b\d+(?:\.\d+)?\s*(?:mm|in|inch|inches)\b/i', ' ', $cleaned) ?? $cleaned;
+        $cleaned = $this->stripCompatibilityBoilerplateFromOriginal($cleaned);
+
+        return $this->normalizeSpacing($cleaned);
+    }
+
+    private function stripCompatibilityBoilerplateFromOriginal(string $description): string
+    {
+        $stripped = $description;
+
+        $patterns = [
+            '/\bcompatible with (?:all )?(?:oat|hoat|dex[- ]?cool|extended[- ]life )?(?:antifreeze\/)?coolant(?: formulations?)?\b/iu',
+            '/\b(?:oat|hoat|dex[- ]?cool|extended[- ]life )?(?:antifreeze\/)?coolant compatible\b/iu',
+            '/\bfor use with (?:all )?(?:oat|hoat )?(?:antifreeze\/)?coolant\b/iu',
+            '/\bmeets (?:oat|hoat )?(?:antifreeze\/)?coolant (?:spec|specification)s?\b/iu',
+            '/\bsuitable for (?:all )?(?:oat|hoat )?(?:antifreeze\/)?coolant\b/iu',
+            '/\bhoat\b/iu',
+            '/\bantifreeze\/coolant compatible\b/iu',
+            '/\bhoat coolant compatible(?:\s+seal)?\b/iu',
+        ];
+
+        foreach ($patterns as $pattern) {
+            $stripped = preg_replace($pattern, ' ', $stripped) ?? $stripped;
+        }
+
+        $stripped = preg_replace('/^(?:compatible with|for use with|suitable for)[^-–—]+[-–—]\s*/iu', '', $stripped) ?? $stripped;
+        $stripped = preg_replace('/\s*[-–—]\s*/u', ' ', $stripped) ?? $stripped;
+
+        return $this->normalizeSpacing($stripped);
+    }
+
+    private function stripPartNumberTokens(string $value): string
+    {
+        $cleaned = preg_replace('/\b(?:part\s*#?\s*)?[A-Z]{1,4}\d[\w-]*\b/i', ' ', $value) ?? $value;
+        $cleaned = preg_replace('/\bH\d+-[A-Z0-9]+\b/i', ' ', $cleaned) ?? $cleaned;
+        $cleaned = preg_replace('/\b\d{3,}\b/u', ' ', $cleaned) ?? $cleaned;
+
+        return $cleaned;
+    }
+
+    private function extractLeadingPositional(string $prefix): string
+    {
+        $tokens = preg_split('/\s+/u', mb_strtolower($prefix), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $kept = [];
+
+        foreach ($tokens as $token) {
+            if (! in_array($token, self::POSITIONAL_PREFIXES, true)) {
+                break;
+            }
+
+            $kept[] = $token;
+        }
+
+        return $this->titleCaseWords(implode(' ', $kept));
+    }
+
+    private function stripLeadingPositional(string $prefix): string
+    {
+        $tokens = preg_split('/\s+/u', $prefix, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        while ($tokens !== [] && in_array(mb_strtolower($tokens[0]), self::POSITIONAL_PREFIXES, true)) {
+            array_shift($tokens);
+        }
+
+        return $this->normalizeSpacing(implode(' ', $tokens));
+    }
+
+    private function extractMeaningfulQualifierSuffix(string $suffix, string $category = ''): string
+    {
+        $normalized = mb_strtolower($suffix);
+        $categoryNormalized = mb_strtolower($category);
+
+        if ($normalized === '') {
+            return '';
+        }
+
+        $allowed = [
+            'with sensor',
+            'without sensor',
+            'w/ sensor',
+            'w/o sensor',
+            'loaded',
+            'remanufactured',
+            'reman',
+            'used',
+            'new',
+            'complete',
+        ];
+
+        foreach ($allowed as $phrase) {
+            if (str_contains($categoryNormalized, $phrase)) {
+                continue;
+            }
+
+            if ($normalized === $phrase || str_starts_with($normalized, $phrase.' ')) {
+                return $this->titleCaseWords($phrase);
+            }
+        }
+
+        return '';
+    }
+
+    private function stripMerchandisingTokens(string $value): string
+    {
+        $cleaned = $value;
+
+        foreach ($this->merchandisingTokensLongestFirst() as $token) {
+            $cleaned = preg_replace('/\b'.preg_quote($token, '/').'\b/i', ' ', $cleaned) ?? $cleaned;
+        }
+
+        return $this->normalizeSpacing($cleaned);
+    }
+
+    private function isOnlyMerchandising(string $value): bool
+    {
+        return $this->stripMerchandisingTokens($value) === '';
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function productLineTokensLongestFirst(): array
+    {
+        $tokens = self::PRODUCT_LINE_TOKENS;
+        usort($tokens, fn (string $left, string $right): int => mb_strlen($right) <=> mb_strlen($left));
+
+        return $tokens;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function merchandisingTokensLongestFirst(): array
+    {
+        $tokens = self::MERCHANDISING_TOKENS;
+        usort($tokens, fn (string $left, string $right): int => mb_strlen($right) <=> mb_strlen($left));
+
+        return $tokens;
     }
 
     private function presentBrakePadLabel(string $description): string

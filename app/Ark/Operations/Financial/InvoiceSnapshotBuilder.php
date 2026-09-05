@@ -139,6 +139,7 @@ final class InvoiceSnapshotBuilder
             'type_label' => $line->type->documentLabel(),
             'description' => $line->description,
             'customer_description' => $line->customer_description,
+            'customer_description_source' => $line->customer_description_source?->value,
             'quantity' => (string) $line->quantity,
             'unit_price_cents' => $line->unit_price_cents,
             'subtotal_cents' => $line->subtotal_cents,

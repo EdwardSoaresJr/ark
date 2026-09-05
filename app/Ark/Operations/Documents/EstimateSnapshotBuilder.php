@@ -195,6 +195,11 @@ class EstimateSnapshotBuilder
             'parts_matrices' => $settings->partsMatrices(),
             'default_parts_matrix_key' => collect($settings->partsMatrices())
                 ->first(fn (array $matrix): bool => (bool) ($matrix['is_default'] ?? false))['key'] ?? null,
+            'customer_part_description_mode' => $settings->customerPartDescriptionMode()->value,
+            'customer_part_show_manufacturer_number' => $settings->customerPartShowManufacturerNumber(),
+            'customer_part_show_supplier' => $settings->customerPartShowSupplier(),
+            'customer_part_show_supplier_sku' => $settings->customerPartShowSupplierSku(),
+            'customer_part_allow_description_override' => $settings->customerPartAllowDescriptionOverride(),
         ];
     }
 
@@ -392,6 +397,7 @@ class EstimateSnapshotBuilder
             'type_label' => $line->type->documentLabel(),
             'description' => $line->description,
             'customer_description' => $line->customer_description,
+            'customer_description_source' => $line->customer_description_source?->value,
             'quantity' => (string) $line->quantity,
             'unit_price_cents' => $line->unit_price_cents,
             'part_cost_cents' => $line->part_cost_cents,

@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'type',
     'description',
     'customer_description',
+    'customer_description_source',
     'quantity',
     'unit_price_cents',
     'part_cost_cents',
@@ -74,6 +75,7 @@ class RepairOrderLine extends Model
     {
         return [
             'type' => RepairOrderLineType::class,
+            'customer_description_source' => \App\Ark\Operations\Parts\CustomerDescriptionSource::class,
             'part_source' => PartLineSource::class,
             'part_classification' => PartLineClassification::class,
             'part_warranty_impact' => PartLineWarrantyImpact::class,

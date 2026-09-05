@@ -88,7 +88,7 @@ final class CustomerDisplayProjection
         return $source
             ->filter(fn (mixed $line): bool => is_array($line) && ($line['type'] ?? '') !== 'note')
             ->map(fn (array $line): array => [
-                'description' => (string) ($line['customer_description'] ?? $line['description'] ?? ''),
+                'description' => (string) ($line['customer_part_description'] ?? $line['customer_description'] ?? $line['description'] ?? ''),
                 'quantity' => (string) ($line['quantity'] ?? '1'),
                 'total' => (string) ($line['total'] ?? $line['line_total'] ?? $line['sell'] ?? $line['subtotal'] ?? ''),
             ])

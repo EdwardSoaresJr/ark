@@ -6,6 +6,12 @@
     $isCustomer = in_array($variant, ['customer', 'pdf'], true);
     $pendingCount = (int) ($forecast['pending_concern_count'] ?? 0);
     $pendingCountLabel = $pendingCount === 1 ? '1 item' : $pendingCount.' items';
+    $projectedAllLabel = $pendingCount === 1
+        ? 'If This Recommendation Is Approved'
+        : 'If All Recommendations Are Approved';
+    $projectedStaffLabel = $pendingCount === 1
+        ? 'If Approved'
+        : 'If All Approved';
 
     // Shared projection; presentation differs by audience (Projection Rule #1).
     if ($variant === 'pdf') {
@@ -14,7 +20,7 @@
         $pendingLabel = $pendingCount > 0
             ? 'Additional Recommendations · '.$pendingCountLabel
             : 'Additional Recommendations';
-        $projectedLabel = 'If All Recommendations Are Approved';
+        $projectedLabel = $projectedAllLabel;
         $footnote = null;
         $pendingPrefix = '';
     } elseif ($variant === 'customer') {
@@ -23,14 +29,14 @@
         $pendingLabel = $pendingCount > 0
             ? 'Additional Recommendations · '.$pendingCountLabel
             : 'Additional Recommendations';
-        $projectedLabel = 'If All Recommendations Are Approved';
+        $projectedLabel = $projectedAllLabel;
         $footnote = 'Only work you approve will be performed. Additional recommendations are not authorized yet.';
         $pendingPrefix = '';
     } else {
         $title = 'Approval Forecast';
         $approvedLabel = 'Approved';
         $pendingLabel = 'Needs Approval';
-        $projectedLabel = 'If All Approved';
+        $projectedLabel = $projectedStaffLabel;
         $footnote = 'Conversation prep — not invoice authority.';
         $pendingPrefix = '+';
     }

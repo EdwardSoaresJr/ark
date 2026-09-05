@@ -49,6 +49,11 @@ public function updateEstimates(Request $request): RedirectResponse
             'customer_type_disclaimers.*' => ['nullable', 'string'],
             'estimate_validity_days' => ['required', 'integer', 'min:1', 'max:365'],
             'portal_signature_required' => ['nullable', 'boolean'],
+            'customer_part_description_mode' => ['required', Rule::enum(\App\Ark\Operations\Parts\CustomerPartDescriptionMode::class)],
+            'customer_part_show_manufacturer_number' => ['nullable', 'boolean'],
+            'customer_part_show_supplier' => ['nullable', 'boolean'],
+            'customer_part_show_supplier_sku' => ['nullable', 'boolean'],
+            'customer_part_allow_description_override' => ['nullable', 'boolean'],
         ]);
 
         $settings->update([
@@ -57,6 +62,11 @@ public function updateEstimates(Request $request): RedirectResponse
             'recommendation_disclaimer' => $data['recommendation_disclaimer'] ?? null,
             'authorization_language' => $data['authorization_language'] ?? null,
             'portal_signature_required' => $request->boolean('portal_signature_required'),
+            'customer_part_description_mode' => $data['customer_part_description_mode'],
+            'customer_part_show_manufacturer_number' => $request->boolean('customer_part_show_manufacturer_number'),
+            'customer_part_show_supplier' => $request->boolean('customer_part_show_supplier'),
+            'customer_part_show_supplier_sku' => $request->boolean('customer_part_show_supplier_sku'),
+            'customer_part_allow_description_override' => $request->boolean('customer_part_allow_description_override'),
             'customer_type_disclaimers' => $settings->normalizeCustomerTypeDisclaimerInput(
                 $data['customer_type_disclaimers'] ?? [],
             ),

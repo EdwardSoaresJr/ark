@@ -73,9 +73,17 @@
                 <input type="hidden" name="repair_order_work_group_id" value="{{ $line->repair_order_work_group_id }}">
                 <input type="hidden" name="type" value="{{ $line->type->value }}">
                 <label class="block text-[11px] font-medium text-slate-500">
-                    Description
+                    Part description
                     <input name="description" value="{{ $line->description }}" required class="mt-1 w-full rounded-sm border border-slate-300 px-3 py-1.5 text-sm">
+                    <span class="mt-1 block font-normal text-slate-400">Internal / ordering identity</span>
                 </label>
+                @if ($line->type->isPart() && \App\Ark\Operations\Settings\ShopSettings::current()->customerPartAllowDescriptionOverride())
+                    <label class="block text-[11px] font-medium text-slate-500">
+                        Customer description
+                        <input name="customer_description" value="{{ $line->customer_description }}" placeholder="Clean label for estimate / PDF" class="mt-1 w-full rounded-sm border border-slate-300 px-3 py-1.5 text-sm">
+                        <span class="mt-1 block font-normal text-slate-400">Leave blank to regenerate from part description</span>
+                    </label>
+                @endif
                 <div class="grid gap-2 sm:grid-cols-3">
                     <label class="block text-[11px] font-medium text-slate-500" x-show="type === 'part' || type === 'sublet'">
                         Cost

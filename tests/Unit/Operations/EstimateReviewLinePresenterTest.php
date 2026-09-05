@@ -1,5 +1,6 @@
 <?php
 
+use App\Ark\Operations\Parts\CustomerPartDescriptionPresenter;
 use App\Ark\Operations\RepairOrders\EstimateReviewLinePresenter;
 use App\Ark\Operations\RepairOrders\RepairOrderConcern;
 use App\Ark\Operations\RepairOrders\RepairOrderLine;
@@ -7,8 +8,13 @@ use App\Ark\Operations\RepairOrders\RepairOrderLineType;
 use App\Ark\Operations\RepairOrders\RepairOrderWorkGroup;
 use Illuminate\Database\Eloquent\Collection;
 
-test('estimate review line presenter keeps labor and part descriptions verbatim', function (): void {
-    $presenter = new EstimateReviewLinePresenter;
+function estimateReviewPresenter(): EstimateReviewLinePresenter
+{
+    return new EstimateReviewLinePresenter(new CustomerPartDescriptionPresenter);
+}
+
+test('estimate review line presenter normalizes part catalog descriptions for customers', function (): void {
+    $presenter = estimateReviewPresenter();
 
     $concern = new RepairOrderConcern([
         'summary' => 'Front brake maintenance',
@@ -32,11 +38,11 @@ test('estimate review line presenter keeps labor and part descriptions verbatim'
     ]);
 
     expect($presenter->description($labor, $concern, $workGroup))->toBe('Front brake maintenance')
-        ->and($presenter->description($part, $concern, $workGroup))->toBe('Brakebest Select Ceramic Disc Brake Pad Set');
+        ->and($presenter->description($part, $concern, $workGroup))->toBe('Ceramic Disc Brake Pad Set');
 });
 
 test('estimate review line presenter prefers explicit customer part description when set', function (): void {
-    $presenter = new EstimateReviewLinePresenter;
+    $presenter = estimateReviewPresenter();
 
     $concern = new RepairOrderConcern([
         'summary' => 'Overheating',
@@ -52,7 +58,7 @@ test('estimate review line presenter prefers explicit customer part description 
 });
 
 test('estimate review suppresses matching single labor description as compact summary', function (): void {
-    $presenter = new EstimateReviewLinePresenter;
+    $presenter = estimateReviewPresenter();
 
     $concern = new RepairOrderConcern(['summary' => 'Brakes']);
     $labor = new RepairOrderLine([
@@ -70,7 +76,7 @@ test('estimate review suppresses matching single labor description as compact su
 });
 
 test('estimate review keeps distinct labor descriptions when multiple labor lines exist', function (): void {
-    $presenter = new EstimateReviewLinePresenter;
+    $presenter = estimateReviewPresenter();
 
     $concern = new RepairOrderConcern(['summary' => 'Engine']);
     $remove = new RepairOrderLine([

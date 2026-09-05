@@ -2,11 +2,17 @@
 
 namespace App\Ark\Operations\RepairOrders;
 
+use App\Ark\Operations\Parts\CustomerPartDescriptionPresenter;
+
 /**
  * Customer-facing line labels for estimate review — mirrors PDF/portal presentation.
  */
 final class EstimateReviewLinePresenter
 {
+    public function __construct(
+        private readonly CustomerPartDescriptionPresenter $partDescriptions,
+    ) {}
+
     public function description(
         RepairOrderLine $line,
         RepairOrderConcern $concern,
@@ -14,10 +20,8 @@ final class EstimateReviewLinePresenter
     ): string {
         unset($concern);
 
-        $explicitCustomerDescription = trim((string) ($line->customer_description ?? ''));
-
-        if ($line->type === RepairOrderLineType::Part && $explicitCustomerDescription !== '') {
-            return $explicitCustomerDescription;
+        if ($line->type === RepairOrderLineType::Part) {
+            return $this->partDescriptions->present($line);
         }
 
         if ($workGroup !== null && $line->type->isLabor() && $workGroup->relationLoaded('lines')) {

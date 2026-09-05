@@ -1090,6 +1090,52 @@
                         </label>
                         <p class="text-xs text-slate-500">When enabled, customers must sign and acknowledge authorization language before submitting portal approval.</p>
 
+                        <div class="border-t border-slate-200 pt-4">
+                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Customer Part Presentation</p>
+                            <p class="mt-1 text-xs text-slate-500">Controls how part names appear on estimates, invoices, portal, and print. Full catalog details stay internal for ordering.</p>
+
+                            <label class="mt-3 block max-w-md text-xs font-medium text-slate-500">
+                                Description mode
+                                <select name="customer_part_description_mode" class="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-950">
+                                    @foreach (\App\Ark\Operations\Parts\CustomerPartDescriptionMode::options() as $mode)
+                                        <option
+                                            value="{{ $mode->value }}"
+                                            @selected(old('customer_part_description_mode', $settings->customerPartDescriptionMode()->value) === $mode->value)
+                                        >{{ $mode->label() }}</option>
+                                    @endforeach
+                                </select>
+                            </label>
+                            <ul class="mt-2 space-y-1 text-xs text-slate-500">
+                                @foreach (\App\Ark\Operations\Parts\CustomerPartDescriptionMode::options() as $mode)
+                                    <li><span class="font-medium text-slate-700">{{ $mode->label() }}:</span> {{ $mode->helpText() }}</li>
+                                @endforeach
+                            </ul>
+
+                            <div class="mt-3 grid gap-2">
+                                <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                                    <input type="hidden" name="customer_part_show_manufacturer_number" value="0">
+                                    <input type="checkbox" name="customer_part_show_manufacturer_number" value="1" @checked(old('customer_part_show_manufacturer_number', $settings->customerPartShowManufacturerNumber())) class="rounded border-slate-300 text-slate-950 focus:ring-slate-400">
+                                    <span>Show manufacturer part number</span>
+                                </label>
+                                <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                                    <input type="hidden" name="customer_part_show_supplier" value="0">
+                                    <input type="checkbox" name="customer_part_show_supplier" value="1" @checked(old('customer_part_show_supplier', $settings->customerPartShowSupplier())) class="rounded border-slate-300 text-slate-950 focus:ring-slate-400">
+                                    <span>Show supplier name</span>
+                                </label>
+                                <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                                    <input type="hidden" name="customer_part_show_supplier_sku" value="0">
+                                    <input type="checkbox" name="customer_part_show_supplier_sku" value="1" @checked(old('customer_part_show_supplier_sku', $settings->customerPartShowSupplierSku())) class="rounded border-slate-300 text-slate-950 focus:ring-slate-400">
+                                    <span>Show supplier SKU</span>
+                                </label>
+                                <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+                                    <input type="hidden" name="customer_part_allow_description_override" value="0">
+                                    <input type="checkbox" name="customer_part_allow_description_override" value="1" @checked(old('customer_part_allow_description_override', $settings->customerPartAllowDescriptionOverride())) class="rounded border-slate-300 text-slate-950 focus:ring-slate-400">
+                                    <span>Allow advisor override on individual lines</span>
+                                </label>
+                            </div>
+                            <p class="mt-2 text-xs text-slate-500">Billing-class document profiles (Warranty / RepairPal) can still add part number or supplier for audit when those programs need them.</p>
+                        </div>
+
                         <label class="block text-xs font-medium text-slate-500">
                             Recommendation disclaimer
                             <span class="font-normal text-slate-400">(concern narrative context, not mixed with authorization)</span>

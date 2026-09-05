@@ -289,7 +289,7 @@ test('estimate pdf scope header keeps amount top right and shows approval inline
         ->not->toContain('concern-header-decision--recommended">Recommended')
         ->toContain('Customer decision');
 
-    expect($html)->toContain('If All Recommendations Are Approved');
+    expect($html)->toContain('If This Recommendation Is Approved');
     expect($html)->toContain('Approved Work Breakdown');
 });
 

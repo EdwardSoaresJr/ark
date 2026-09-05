@@ -2,6 +2,7 @@
 
 namespace App\Ark\Operations\RepairOrders;
 
+use App\Ark\Operations\Parts\CustomerPartDescriptionAttributes;
 use App\Ark\Operations\RepairOrders\RecordsRepairOrderEstimateMutation;
 use App\Ark\Operations\Documents\EstimateDocumentService;
 use App\Ark\Operations\Events\OperationalEventName;
@@ -16,7 +17,7 @@ use Illuminate\Validation\Rule;
 class RepairOrderLineStoreController
 {
     use RecordsRepairOrderEstimateMutation;
-    public function __invoke(Request $request, RepairOrder $repairOrder, EstimateTotalsCalculator $calculator, EstimateDocumentService $documents, OperationalEventRecorder $events, RepairOrderLifecycleTransition $lifecycle, RepairOrderLinePricing $pricing, RepairOrderConcurrency $concurrency, RefreshCustomerInvoiceAction $refreshInvoice): RedirectResponse
+    public function __invoke(Request $request, RepairOrder $repairOrder, EstimateTotalsCalculator $calculator, EstimateDocumentService $documents, OperationalEventRecorder $events, RepairOrderLifecycleTransition $lifecycle, RepairOrderLinePricing $pricing, RepairOrderConcurrency $concurrency, RefreshCustomerInvoiceAction $refreshInvoice, CustomerPartDescriptionAttributes $customerDescriptions): RedirectResponse
     {
         $repairOrder->ensureOpenForEditing();
         $concurrency->guard($request, $repairOrder);
@@ -88,15 +89,31 @@ class RepairOrderLineStoreController
         $this->authorizePricingAuthority($request, $pricingAttributes);
 
         $quantity = $pricingAttributes['quantity'] ?? $data['quantity'];
+        $explicitCustomerDescription = $lineType->isPart()
+            ? ($data['customer_description'] ?? null)
+            : null;
+
+        if ($lineType->isPart() && ! \App\Ark\Operations\Settings\ShopSettings::current()->customerPartAllowDescriptionOverride()) {
+            $explicitCustomerDescription = null;
+        }
+
+        $customerDescription = $lineType->isPart()
+            ? $customerDescriptions->forCreate(
+                inventoryDescription: (string) $data['description'],
+                explicitCustomerDescription: $explicitCustomerDescription,
+            )
+            : [
+                'customer_description' => null,
+                'customer_description_source' => null,
+            ];
 
         $line = $repairOrder->lines()->create([
             'repair_order_concern_id' => $data['repair_order_concern_id'],
             'repair_order_work_group_id' => $data['repair_order_work_group_id'] ?? null,
             'type' => $data['type'],
             'description' => $data['description'],
-            'customer_description' => $lineType->isPart()
-                ? filled($data['customer_description'] ?? null) ? trim((string) $data['customer_description']) : null
-                : null,
+            'customer_description' => $customerDescription['customer_description'],
+            'customer_description_source' => $customerDescription['customer_description_source'],
             'quantity' => $quantity,
             'unit_price_cents' => $pricingAttributes['unit_price_cents'],
             'part_cost_cents' => $pricingAttributes['part_cost_cents'],

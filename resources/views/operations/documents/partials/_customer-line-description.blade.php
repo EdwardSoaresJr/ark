@@ -46,17 +46,18 @@
         @else
             <p class="font-medium text-slate-800">{{ $description }}</p>
         @endif
-        @if ($lineType === 'part' && (filled($line['customer_part_number'] ?? null) || filled($line['customer_part_vendor'] ?? null)))
+        @if ($lineType === 'part' && (filled($line['customer_part_number'] ?? null) || filled($line['customer_part_vendor'] ?? null) || filled($line['customer_part_supplier_sku'] ?? null)))
             <p class="mt-0.5 text-xs text-slate-500">
-                @if (filled($line['customer_part_number'] ?? null))
-                    {{ $line['customer_part_number'] }}
-                @endif
-                @if (filled($line['customer_part_number'] ?? null) && filled($line['customer_part_vendor'] ?? null))
-                    ·
-                @endif
-                @if (filled($line['customer_part_vendor'] ?? null))
-                    {{ $line['customer_part_vendor'] }}
-                @endif
+                @php
+                    $procurementBits = array_values(array_filter([
+                        filled($line['customer_part_number'] ?? null) ? (string) $line['customer_part_number'] : null,
+                        filled($line['customer_part_vendor'] ?? null) ? (string) $line['customer_part_vendor'] : null,
+                        filled($line['customer_part_supplier_sku'] ?? null) && ($line['customer_part_supplier_sku'] ?? null) !== ($line['customer_part_number'] ?? null)
+                            ? 'SKU '.$line['customer_part_supplier_sku']
+                            : null,
+                    ]));
+                @endphp
+                {{ implode(' · ', $procurementBits) }}
             </p>
         @endif
     </div>
@@ -75,17 +76,18 @@
     @else
         <span class="line-desc-primary">{{ $description }}</span>
     @endif
-    @if ($lineType === 'part' && (filled($line['customer_part_number'] ?? null) || filled($line['customer_part_vendor'] ?? null)))
+    @if ($lineType === 'part' && (filled($line['customer_part_number'] ?? null) || filled($line['customer_part_vendor'] ?? null) || filled($line['customer_part_supplier_sku'] ?? null)))
         <span class="line-desc-procurement">
-            @if (filled($line['customer_part_number'] ?? null))
-                {{ $line['customer_part_number'] }}
-            @endif
-            @if (filled($line['customer_part_number'] ?? null) && filled($line['customer_part_vendor'] ?? null))
-                <span class="line-desc-procurement-sep">·</span>
-            @endif
-            @if (filled($line['customer_part_vendor'] ?? null))
-                {{ $line['customer_part_vendor'] }}
-            @endif
+            @php
+                $procurementBits = array_values(array_filter([
+                    filled($line['customer_part_number'] ?? null) ? (string) $line['customer_part_number'] : null,
+                    filled($line['customer_part_vendor'] ?? null) ? (string) $line['customer_part_vendor'] : null,
+                    filled($line['customer_part_supplier_sku'] ?? null) && ($line['customer_part_supplier_sku'] ?? null) !== ($line['customer_part_number'] ?? null)
+                        ? 'SKU '.$line['customer_part_supplier_sku']
+                        : null,
+                ]));
+            @endphp
+            {{ implode(' · ', $procurementBits) }}
         </span>
     @endif
 @endif

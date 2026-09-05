@@ -2,6 +2,7 @@
 
 namespace App\Ark\Operations\RepairOrders;
 
+use App\Ark\Operations\Parts\CustomerPartDescriptionAttributes;
 use App\Ark\Operations\RepairOrders\RecordsRepairOrderEstimateMutation;
 use App\Ark\Operations\Documents\EstimateDocumentService;
 use App\Ark\Operations\Events\OperationalEventName;
@@ -17,7 +18,7 @@ use Illuminate\Validation\Rule;
 class RepairOrderLineUpdateController
 {
     use RecordsRepairOrderEstimateMutation;
-    public function __invoke(Request $request, RepairOrder $repairOrder, RepairOrderLine $line, EstimateTotalsCalculator $calculator, EstimateDocumentService $documents, OperationalEventRecorder $events, RteLaborObservationRecorder $rteObservations, RepairOrderLinePricing $pricing, RepairOrderConcurrency $concurrency, RefreshCustomerInvoiceAction $refreshInvoice): RedirectResponse
+    public function __invoke(Request $request, RepairOrder $repairOrder, RepairOrderLine $line, EstimateTotalsCalculator $calculator, EstimateDocumentService $documents, OperationalEventRecorder $events, RteLaborObservationRecorder $rteObservations, RepairOrderLinePricing $pricing, RepairOrderConcurrency $concurrency, RefreshCustomerInvoiceAction $refreshInvoice, CustomerPartDescriptionAttributes $customerDescriptions): RedirectResponse
     {
         abort_unless($line->repair_order_id === $repairOrder->id, 404);
         $repairOrder->ensureOpenForEditing();
@@ -79,14 +80,24 @@ class RepairOrderLineUpdateController
         $quantity = $pricingAttributes['quantity'] ?? $data['quantity'];
         $procurementState = RepairOrderLinePartMetadata::resolveProcurementStateUpdate($data, $line, $lineType->isPart());
 
+        if ($lineType->isPart() && ! \App\Ark\Operations\Settings\ShopSettings::current()->customerPartAllowDescriptionOverride()) {
+            unset($data['customer_description']);
+        }
+
+        $customerDescription = $lineType->isPart()
+            ? $customerDescriptions->forUpdate($line, (string) $data['description'], $data)
+            : [
+                'customer_description' => null,
+                'customer_description_source' => null,
+            ];
+
         $line->update([
             'repair_order_concern_id' => $data['repair_order_concern_id'],
             'repair_order_work_group_id' => $data['repair_order_work_group_id'] ?? null,
             'type' => $data['type'],
             'description' => $data['description'],
-            'customer_description' => $lineType->isPart()
-                ? filled($data['customer_description'] ?? null) ? trim((string) $data['customer_description']) : null
-                : null,
+            'customer_description' => $customerDescription['customer_description'],
+            'customer_description_source' => $customerDescription['customer_description_source'],
             'quantity' => $quantity,
             'unit_price_cents' => $pricingAttributes['unit_price_cents'],
             'part_cost_cents' => $pricingAttributes['part_cost_cents'],

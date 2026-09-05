@@ -77,7 +77,7 @@ test('concern billing posture overrides customer billing class presentation prof
         ->toBe(CustomerPartPresentationProfile::Retail);
 });
 
-test('customer facing boundary keeps part descriptions verbatim and strips inventory metadata', function () {
+test('customer facing boundary derives customer part descriptions and strips inventory metadata', function () {
     [$repairOrder, $concern] = repairOrderForCustomerPartPresentation();
 
     $workGroup = RepairOrderWorkGroup::query()->create([
@@ -148,7 +148,7 @@ test('customer facing boundary keeps part descriptions verbatim and strips inven
 
     expect($partLine)
         ->description->toBe('Gates 43527 Water Pump')
-        ->customer_part_description->toBe('Gates 43527 Water Pump')
+        ->customer_part_description->toBe('Water Pump')
         ->not->toHaveKey('part_number')
         ->not->toHaveKey('vendor_name')
         ->not->toHaveKey('part_cost_cents');
@@ -226,8 +226,9 @@ test('grouped repair action pdf shows labor and part badges and hides column typ
         ->toContain('line-type-badge--part')
         ->toContain('>Labor<')
         ->toContain('>Part<')
-        ->toContain('Gates 43527 Water Pump')
+        ->toContain('Water Pump')
         ->toContain('Coolant')
+        ->not->toContain('Gates 43527 Water Pump')
         ->toContain('.repair-action-group {')
         ->toContain('border: none')
         ->toContain('.repair-action-header {')
@@ -283,7 +284,8 @@ test('estimate pdf html shows customer part descriptions and hides inventory met
 
     expect($html)
         ->toContain('Replace Water Pump')
-        ->toContain('Gates 43527 Water Pump')
+        ->toContain('Water Pump')
+        ->not->toContain('Gates 43527 Water Pump')
         ->not->toContain('WorldPac');
 });
 
@@ -308,7 +310,7 @@ test('prepare for customer keeps stored part descriptions intact while adding pr
 
     expect($built['concerns'][0]['lines'][0]['description'])->toBe('Gates 43527 Water Pump')
         ->and($presented['concerns'][0]['lines'][0]['description'])->toBe('Gates 43527 Water Pump')
-        ->and($presented['concerns'][0]['lines'][0]['customer_part_description'])->toBe('Gates 43527 Water Pump');
+        ->and($presented['concerns'][0]['lines'][0]['customer_part_description'])->toBe('Water Pump');
 });
 
 test('warranty presentation profile shows audit part number and vendor without mutating stored description', function () {
@@ -337,7 +339,7 @@ test('warranty presentation profile shows audit part number and vendor without m
 
     expect($presented['concerns'][0]['customer_part_presentation_profile'])->toBe('warranty')
         ->and($line['description'])->toBe('Gates 43527 Water Pump')
-        ->and($line['customer_part_description'])->toBe('Gates 43527 Water Pump')
+        ->and($line['customer_part_description'])->toBe('Water Pump')
         ->and($line['customer_part_number'])->toBe('Gates 43527')
         ->and($line['customer_part_vendor'])->toBe('WorldPac');
 
@@ -347,9 +349,10 @@ test('warranty presentation profile shows audit part number and vendor without m
     ])->render();
 
     expect($html)
-        ->toContain('Gates 43527 Water Pump')
+        ->toContain('Water Pump')
         ->toContain('Gates 43527')
-        ->toContain('WorldPac');
+        ->toContain('WorldPac')
+        ->not->toContain('Gates 43527 Water Pump');
 });
 
 test('repairpal presentation profile shows part number but not vendor', function () {
@@ -377,7 +380,7 @@ test('repairpal presentation profile shows part number but not vendor', function
     $line = $presented['concerns'][0]['lines'][0];
 
     expect($presented['concerns'][0]['customer_part_presentation_profile'])->toBe('repairpal')
-        ->and($line['customer_part_description'])->toBe('Gates 43527 Water Pump')
+        ->and($line['customer_part_description'])->toBe('Water Pump')
         ->and($line['customer_part_number'])->toBe('Gates 43527')
         ->not->toHaveKey('customer_part_vendor');
 });

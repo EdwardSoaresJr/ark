@@ -3,8 +3,9 @@
 namespace App\Ark\Operations\Documents;
 
 use App\Ark\Operations\Labor\CustomerLaborPresentationPresenter;
+use App\Ark\Operations\Parts\CustomerPartPresentationPolicy;
+use App\Ark\Operations\Parts\CustomerPartPresentationPolicyResolver;
 use App\Ark\Operations\Parts\CustomerPartPresentationPresenter;
-use App\Ark\Operations\Parts\CustomerPartPresentationProfile;
 use App\Ark\Operations\Parts\CustomerPartPresentationProfileResolver;
 use App\Ark\Operations\RepairOrders\RepairOrderConcernDisposition;
 use App\Ark\Operations\RepairOrders\RepairOrderLineType;
@@ -21,6 +22,7 @@ final class CustomerFacingDocumentBoundary
     public function __construct(
         private readonly CustomerPartPresentationPresenter $partPresentationPresenter,
         private readonly CustomerLaborPresentationPresenter $laborPresentationPresenter,
+        private readonly CustomerPartPresentationPolicyResolver $partPresentationPolicyResolver,
         private readonly CustomerPartPresentationProfileResolver $partPresentationProfileResolver,
         private readonly CustomerFacingEstimateStatus $estimateStatus,
     ) {}
@@ -49,6 +51,7 @@ final class CustomerFacingDocumentBoundary
     /** @var list<string> */
     private const LINE_INVENTORY_KEYS = [
         'customer_description',
+        'customer_description_source',
         'part_number',
         'vendor_name',
         'part_cost_cents',
@@ -129,13 +132,16 @@ final class CustomerFacingDocumentBoundary
 
             unset($concern['notes']);
 
-            $profile = $this->partPresentationProfileResolver->forConcern($snapshot, $concern);
-            $concern['customer_part_presentation_profile'] = $profile->value;
+            $policy = $this->partPresentationPolicyResolver->forConcern($snapshot, $concern);
+            $concern['customer_part_presentation_profile'] = $this->partPresentationProfileResolver
+                ->forConcern($snapshot, $concern)
+                ->value;
+            $concern['customer_part_description_mode'] = $policy->descriptionMode->value;
 
             $lines = $concern['lines'] ?? null;
 
             if (is_array($lines)) {
-                $lines = $this->presentCustomerLines($lines, $concern, $profile);
+                $lines = $this->presentCustomerLines($lines, $concern, $policy);
                 $concern['lines'] = $lines;
             }
 
@@ -156,7 +162,7 @@ final class CustomerFacingDocumentBoundary
                     $groupLines = $this->presentCustomerLines($groupLines, [
                         ...$concern,
                         'work_group_title' => $workGroup['title'] ?? null,
-                    ], $profile);
+                    ], $policy);
 
                     $workGroup['lines'] = $groupLines;
                     $workGroups[$groupIndex] = $workGroup;
@@ -182,7 +188,7 @@ final class CustomerFacingDocumentBoundary
      * @param  array<string, mixed>  $context
      * @return list<array<string, mixed>>
      */
-    private function presentCustomerLines(array $lines, array $context, CustomerPartPresentationProfile $profile): array
+    private function presentCustomerLines(array $lines, array $context, CustomerPartPresentationPolicy $policy): array
     {
         $lines = $this->filterCustomerVisibleLines($lines);
         $lines = $this->laborPresentationPresenter->presentLines($lines, $context);
@@ -193,7 +199,7 @@ final class CustomerFacingDocumentBoundary
             }
 
             $siblingPartDescriptions = $this->siblingPartDescriptionsFromSnapshotBatch($lines, $lineIndex);
-            $lines[$lineIndex] = $this->sanitizeLine($line, $profile, $siblingPartDescriptions);
+            $lines[$lineIndex] = $this->sanitizeLine($line, $policy, $siblingPartDescriptions);
         }
 
         return $lines;
@@ -233,7 +239,7 @@ final class CustomerFacingDocumentBoundary
      */
     private function sanitizeLine(
         array $line,
-        CustomerPartPresentationProfile $profile,
+        CustomerPartPresentationPolicy $policy,
         array $siblingPartDescriptions = [],
     ): array {
         foreach (self::LINE_LABOR_AUTHORITY_KEYS as $key) {
@@ -241,7 +247,7 @@ final class CustomerFacingDocumentBoundary
         }
 
         if (($line['type'] ?? '') === RepairOrderLineType::Part->value) {
-            $line = $this->partPresentationPresenter->presentLine($profile, $line, $siblingPartDescriptions);
+            $line = $this->partPresentationPresenter->presentLine($policy, $line, $siblingPartDescriptions);
 
             foreach (self::LINE_INVENTORY_KEYS as $key) {
                 unset($line[$key]);

@@ -56,25 +56,22 @@ final class EstimateDocumentPdfSnapshot
         $stored = $document->snapshot_json;
 
         if (is_array($stored) && data_get($stored, 'repair_order') !== null) {
-            return $this->invoiceFinancialSnapshot->append(
-                $document,
-                RepairOrderFreeText::normalizeSnapshot(
-                    $this->withLiveShopPresentation(
-                        $this->withLiveConcernIntent(
-                            $document,
-                            $this->withLiveDocumentLineLabels(
-                                $this->withLiveCustomerIdentity(
+            $resolved = RepairOrderFreeText::normalizeSnapshot(
+                $this->withLiveShopPresentation(
+                    $this->withLiveConcernIntent(
+                        $document,
+                        $this->withLiveDocumentLineLabels(
+                            $this->withLiveCustomerIdentity(
+                                $document,
+                                $this->withLiveVisitIdentity(
                                     $document,
-                                    $this->withLiveVisitIdentity(
+                                    $this->withLiveStaffIdentity(
                                         $document,
-                                        $this->withLiveStaffIdentity(
+                                        $this->withLiveRepairOrderIdentity(
                                             $document,
-                                            $this->withLiveRepairOrderIdentity(
+                                            $this->withLiveApprovalForecast(
                                                 $document,
-                                                $this->withLiveApprovalForecast(
-                                                    $document,
-                                                    $this->withLiveVehicleIdentity($document, $stored),
-                                                ),
+                                                $this->withLiveVehicleIdentity($document, $stored),
                                             ),
                                         ),
                                     ),
@@ -84,6 +81,9 @@ final class EstimateDocumentPdfSnapshot
                     ),
                 ),
             );
+            $resolved['customer_part_labels_locked'] = true;
+
+            return $this->invoiceFinancialSnapshot->append($document, $resolved);
         }
 
         $built = $this->snapshotBuilder->build($document->repairOrder, $user);
@@ -470,8 +470,9 @@ final class EstimateDocumentPdfSnapshot
 
         $line['type'] = $live->type->value;
         $line['type_label'] = $live->type->documentLabel();
-        $line['description'] = $live->description;
-        $line['customer_description'] = $live->customer_description;
+
+        // Historical documents keep snapshotted customer wording. Open estimates
+        // rebuild from live authority and may still refresh labels there.
 
         return $line;
     }

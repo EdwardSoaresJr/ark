@@ -134,7 +134,8 @@ test('edit estimate shows approval forecast when recommendations exist after app
         ->assertSee('Approval Forecast', false)
         ->assertSee('Approved', false)
         ->assertSee('Needs Approval', false)
-        ->assertSee('If All Approved', false)
+        ->assertSee('If Approved', false)
+        ->assertDontSee('If All Approved', false)
         ->assertSee('data-approval-forecast', false);
 });
 
@@ -164,7 +165,8 @@ test('review estimate shows approval forecast when recommendations exist after a
         ->assertSee('Approval Forecast', false)
         ->assertSee('Approved', false)
         ->assertSee('Needs Approval', false)
-        ->assertSee('If All Approved', false)
+        ->assertSee('If Approved', false)
+        ->assertDontSee('If All Approved', false)
         ->assertSee('data-approval-forecast', false);
 });
 
@@ -200,7 +202,7 @@ test('portal estimate and pdf snapshot surface approval forecast for customers',
     expect($html)
         ->toContain('Approved Work')
         ->toContain('Additional Recommendations')
-        ->toContain('If All Recommendations Are Approved')
+        ->toContain('If This Recommendation Is Approved')
         ->toContain('Approved Work Breakdown')
         ->toContain('totals-row--quiet-final')
         ->not->toContain('Needs your approval')
@@ -217,10 +219,48 @@ test('portal estimate and pdf snapshot surface approval forecast for customers',
         ->assertOk()
         ->assertSee('Approved Work', false)
         ->assertSee('Additional Recommendations', false)
-        ->assertSee('If All Recommendations Are Approved', false)
-        ->assertSee('Approved Work Breakdown', false)
+        ->assertSee('If This Recommendation Is Approved', false)
+        ->assertSee('Approved work breakdown', false)
         ->assertSee('Only work you approve will be performed', false)
         ->assertDontSee('Needs your approval', false)
         ->assertDontSee('Approval Forecast', false)
         ->assertDontSee('Conversation prep — not invoice authority', false);
+});
+
+test('approval forecast uses plural recommendation wording when multiple recommendations are pending', function (): void {
+    $repairOrder = approvalForecastRepairOrder();
+
+    $diag = RepairOrderConcern::query()->create([
+        'repair_order_id' => $repairOrder->id,
+        'summary' => 'Diagnostic',
+        'disposition' => RepairOrderConcernDisposition::Approved,
+        'position' => 1,
+    ]);
+    approvalForecastLaborLine($repairOrder, $diag, 15000, 1);
+
+    $pads = RepairOrderConcern::query()->create([
+        'repair_order_id' => $repairOrder->id,
+        'summary' => 'Replace pads',
+        'disposition' => RepairOrderConcernDisposition::Recommended,
+        'position' => 2,
+    ]);
+    approvalForecastLaborLine($repairOrder, $pads, 40000, 2);
+
+    $rotors = RepairOrderConcern::query()->create([
+        'repair_order_id' => $repairOrder->id,
+        'summary' => 'Replace rotors',
+        'disposition' => RepairOrderConcernDisposition::Recommended,
+        'position' => 3,
+    ]);
+    approvalForecastLaborLine($repairOrder, $rotors, 50000, 3);
+
+    $snapshot = app(EstimateSnapshotBuilder::class)->build($repairOrder->fresh(['concerns.lines', 'lines.concern']));
+
+    $html = view('operations.documents.pdf.document', [
+        'snapshot' => app(DocumentPdfPresenter::class)->prepareForCustomer($snapshot),
+    ])->render();
+
+    expect($html)
+        ->toContain('If All Recommendations Are Approved')
+        ->not->toContain('If This Recommendation Is Approved');
 });

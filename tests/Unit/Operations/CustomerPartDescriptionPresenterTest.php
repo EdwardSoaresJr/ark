@@ -25,6 +25,15 @@ test('customer part description presenter derives repair focused labels from inv
     ['NGK Laser Iridium Plug ILTR5E11', 'Spark Plug'],
     ['Prestone Dex-Cool 50/50 Prediluted Extended Life Antifreeze/Coolant', 'Coolant'],
     ['Brakebest Select Ceramic Disc Brake Pad Set', 'Ceramic Disc Brake Pad Set'],
+    ['Champion Spark Plug Copper Plus', 'Spark Plug'],
+    ['Champion Copper Plus Spark Plug', 'Spark Plug'],
+    ['Blue Streak Distributor Cap', 'Distributor Cap'],
+    ['Blue Streak Distributor Rotor', 'Distributor Rotor'],
+    ['Ultima Select Wires Spark Plug Wire Set', 'Spark Plug Wire Set'],
+    ['Gates Engine Water Pump', 'Water Pump'],
+    ['Dorman OE Solutions Engine Coolant Thermostat Housing Assembly', 'Thermostat Housing'],
+    ['MOOG Suspension Control Arm and Ball Joint Assembly', 'Control Arm and Ball Joint Assembly'],
+    ['Dorman Front Left Upper Control Arm and Ball Joint Assembly', 'Front Left Upper Control Arm and Ball Joint Assembly'],
 ]);
 
 test('customer part description presenter ignores coolant compatibility boilerplate on real parts', function (string $inventory, string $expected) {
@@ -36,7 +45,7 @@ test('customer part description presenter ignores coolant compatibility boilerpl
     ['Antifreeze/Coolant Compatible Fel-Pro Water Pump Gasket Set', 'Water Pump'],
     ['HOAT coolant compatible seal - Gates 22012 Lower Radiator Hose', 'Radiator Hose'],
     ['Engine Coolant Temperature Sensor', 'Temperature Sensor'],
-    ['Gates Upper Radiator Hose', 'Radiator Hose'],
+    ['Gates Upper Radiator Hose', 'Upper Radiator Hose'],
     ['Fel-Pro 35087 Water Pump Gasket', 'Water Pump'],
 ]);
 

@@ -7,34 +7,32 @@ use App\Ark\Operations\RepairOrders\RepairOrderLineType;
 /**
  * Presentation-only projection for customer-facing part lines.
  *
- * Part descriptions render verbatim. Optional profile rules may still surface
- * audit part number and vendor metadata without rewriting the description.
+ * Resolves customer labels through shop presentation policy. Never mutates
+ * procurement identity fields on the line payload.
  */
 final class CustomerPartPresentationPresenter
 {
+    public function __construct(
+        private readonly CustomerPartDescriptionPresenter $descriptionPresenter,
+    ) {}
+
     /**
      * @param  array<string, mixed>  $line
      * @param  list<string>  $siblingPartDescriptions
      * @return array<string, mixed>
      */
     public function presentLine(
-        CustomerPartPresentationProfile $profile,
+        CustomerPartPresentationPolicy $policy,
         array $line,
         array $siblingPartDescriptions = [],
     ): array {
-        unset($siblingPartDescriptions);
-
         if (($line['type'] ?? '') !== RepairOrderLineType::Part->value) {
             return $line;
         }
 
-        $explicitCustomerDescription = trim((string) ($line['customer_description'] ?? ''));
+        $line['customer_part_description'] = $this->resolveDescription($policy, $line, $siblingPartDescriptions);
 
-        $line['customer_part_description'] = $explicitCustomerDescription !== ''
-            ? $explicitCustomerDescription
-            : trim((string) ($line['description'] ?? ''));
-
-        if ($profile->showsPartNumber()) {
+        if ($policy->showManufacturerNumber) {
             $partNumber = $this->presentationPartNumber($line);
 
             if ($partNumber !== null) {
@@ -42,7 +40,7 @@ final class CustomerPartPresentationPresenter
             }
         }
 
-        if ($profile->showsVendor()) {
+        if ($policy->showSupplier) {
             $vendor = trim((string) ($line['vendor_name'] ?? ''));
 
             if ($vendor !== '') {
@@ -50,7 +48,116 @@ final class CustomerPartPresentationPresenter
             }
         }
 
+        if ($policy->showSupplierSku) {
+            $sku = $this->presentationSupplierSku($line);
+
+            if ($sku !== null) {
+                $line['customer_part_supplier_sku'] = $sku;
+            }
+        }
+
         return $line;
+    }
+
+    /**
+     * @param  array<string, mixed>  $line
+     * @param  list<string>  $siblingPartDescriptions
+     */
+    private function resolveDescription(
+        CustomerPartPresentationPolicy $policy,
+        array $line,
+        array $siblingPartDescriptions,
+    ): string {
+        $explicit = trim((string) ($line['customer_description'] ?? ''));
+        $inventory = trim((string) ($line['description'] ?? ''));
+        $source = CustomerDescriptionSource::tryFromStored($line['customer_description_source'] ?? null);
+
+        if ($explicit !== '' && $source?->isManual()) {
+            return $explicit;
+        }
+
+        if ($policy->labelsLocked) {
+            if ($explicit !== '') {
+                return $explicit;
+            }
+
+            return $inventory;
+        }
+
+        return match ($policy->descriptionMode) {
+            CustomerPartDescriptionMode::Verbatim => $inventory,
+            CustomerPartDescriptionMode::Manual => $explicit !== ''
+                ? $explicit
+                : ($inventory !== '' ? $inventory : ''),
+            CustomerPartDescriptionMode::CleanedWithBrand => $this->withBrand(
+                $this->cleanedLabel($line, $siblingPartDescriptions, $explicit),
+                $inventory,
+            ),
+            CustomerPartDescriptionMode::Cleaned => $this->cleanedLabel($line, $siblingPartDescriptions, $explicit),
+        };
+    }
+
+    /**
+     * @param  array<string, mixed>  $line
+     * @param  list<string>  $siblingPartDescriptions
+     */
+    private function cleanedLabel(array $line, array $siblingPartDescriptions, string $explicit): string
+    {
+        if ($explicit !== '') {
+            return $explicit;
+        }
+
+        return $this->descriptionPresenter->presentFromSnapshotLine($line, $siblingPartDescriptions);
+    }
+
+    private function withBrand(string $cleaned, string $inventory): string
+    {
+        $cleaned = trim($cleaned);
+        $brand = $this->inferBrand($inventory);
+
+        if ($brand === '' || $cleaned === '') {
+            return $cleaned !== '' ? $cleaned : $inventory;
+        }
+
+        if (str_starts_with(mb_strtolower($cleaned), mb_strtolower($brand).' ')) {
+            return $cleaned;
+        }
+
+        return $brand.' '.$cleaned;
+    }
+
+    private function inferBrand(string $inventory): string
+    {
+        $inventory = trim($inventory);
+
+        if ($inventory === '') {
+            return '';
+        }
+
+        if (preg_match('/^([A-Za-z][A-Za-z0-9\/&+.\-]*)\b/u', $inventory, $matches) !== 1) {
+            return '';
+        }
+
+        $token = $matches[1];
+        $normalized = mb_strtolower($token);
+
+        $known = [
+            'champion', 'gates', 'dorman', 'moog', 'motorcraft', 'mopar', 'acdelco', 'ngk', 'bosch',
+            'bilstein', 'brembo', 'denso', 'prestone', 'wagner', 'raybestos', 'monroe', 'timken',
+            'continental', 'carquest', 'duralast', 'fel-pro', 'felpro', 'stant', 'oem',
+        ];
+
+        if (! in_array($normalized, $known, true)) {
+            return '';
+        }
+
+        return match ($normalized) {
+            'acdelco' => 'ACDelco',
+            'fel-pro', 'felpro' => 'Fel-Pro',
+            'oem' => 'OEM',
+            'ngk' => 'NGK',
+            default => mb_convert_case($token, MB_CASE_TITLE, 'UTF-8'),
+        };
     }
 
     /**
@@ -72,5 +179,18 @@ final class CustomerPartPresentationPresenter
         }
 
         return $partNumber;
+    }
+
+    /**
+     * Supplier SKU is not a dedicated line column today — only expose part_number
+     * when the shop explicitly asks for supplier SKU (never invent a second identity).
+     *
+     * @param  array<string, mixed>  $line
+     */
+    private function presentationSupplierSku(array $line): ?string
+    {
+        $partNumber = trim((string) ($line['part_number'] ?? ''));
+
+        return $partNumber !== '' ? $partNumber : null;
     }
 }

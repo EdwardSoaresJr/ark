@@ -9,6 +9,7 @@ use App\Ark\Operations\Appointments\AppointmentSlotMinutes;
 use App\Ark\Operations\Appointments\SchedulingHours;
 use App\Ark\Operations\Customers\Customer;
 use App\Ark\Operations\Financial\FinancialDocumentType;
+use App\Ark\Operations\Parts\CustomerPartDescriptionMode;
 use App\Ark\Operations\Parts\CustomerPartPresentationProfile;
 use App\Ark\Operations\RepairOrders\ConcernBillingPosture;
 use App\Ark\Operations\RepairOrders\RepairOrderStatus;
@@ -53,6 +54,11 @@ use InvalidArgumentException;
     'recommendation_disclaimer',
     'authorization_language',
     'portal_signature_required',
+    'customer_part_description_mode',
+    'customer_part_show_manufacturer_number',
+    'customer_part_show_supplier',
+    'customer_part_show_supplier_sku',
+    'customer_part_allow_description_override',
     'customer_type_disclaimers',
     'estimate_validity_days',
     'default_recommendation_intent',
@@ -415,6 +421,10 @@ TEXT;
         'scheduling_hours' => 'array',
         'appointment_request_availability' => 'array',
         'portal_signature_required' => 'boolean',
+        'customer_part_show_manufacturer_number' => 'boolean',
+        'customer_part_show_supplier' => 'boolean',
+        'customer_part_show_supplier_sku' => 'boolean',
+        'customer_part_allow_description_override' => 'boolean',
     ];
 
     private static ?self $current = null;
@@ -536,6 +546,11 @@ TEXT;
             'recommendation_disclaimer' => self::DEFAULT_RECOMMENDATION_DISCLAIMER,
             'authorization_language' => self::DEFAULT_AUTHORIZATION_LANGUAGE,
             'portal_signature_required' => false,
+            'customer_part_description_mode' => CustomerPartDescriptionMode::Cleaned->value,
+            'customer_part_show_manufacturer_number' => false,
+            'customer_part_show_supplier' => false,
+            'customer_part_show_supplier_sku' => false,
+            'customer_part_allow_description_override' => true,
             'customer_type_disclaimers' => self::defaultCustomerTypeDisclaimerMap(),
             'estimate_validity_days' => 30,
             'default_recommendation_intent' => 'maintenance',
@@ -1355,6 +1370,38 @@ TEXT;
     public function portalSignatureRequired(): bool
     {
         return (bool) $this->portal_signature_required;
+    }
+
+    public function customerPartDescriptionMode(): CustomerPartDescriptionMode
+    {
+        return CustomerPartDescriptionMode::fromStored(
+            $this->attributes['customer_part_description_mode'] ?? $this->customer_part_description_mode ?? null,
+        );
+    }
+
+    public function customerPartShowManufacturerNumber(): bool
+    {
+        return (bool) ($this->attributes['customer_part_show_manufacturer_number'] ?? $this->customer_part_show_manufacturer_number ?? false);
+    }
+
+    public function customerPartShowSupplier(): bool
+    {
+        return (bool) ($this->attributes['customer_part_show_supplier'] ?? $this->customer_part_show_supplier ?? false);
+    }
+
+    public function customerPartShowSupplierSku(): bool
+    {
+        return (bool) ($this->attributes['customer_part_show_supplier_sku'] ?? $this->customer_part_show_supplier_sku ?? false);
+    }
+
+    public function customerPartAllowDescriptionOverride(): bool
+    {
+        if (! array_key_exists('customer_part_allow_description_override', $this->attributes)
+            && $this->customer_part_allow_description_override === null) {
+            return true;
+        }
+
+        return (bool) ($this->attributes['customer_part_allow_description_override'] ?? $this->customer_part_allow_description_override ?? true);
     }
 
     /**

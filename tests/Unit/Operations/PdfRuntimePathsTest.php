@@ -1,9 +1,6 @@
 <?php
 
 use App\Ark\Operations\Documents\PdfRuntimePaths;
-use Tests\TestCase;
-
-uses(TestCase::class);
 
 it('picks the newest node version directory', function (): void {
     $base = sys_get_temp_dir().'/pdf-runtime-'.uniqid('', true);

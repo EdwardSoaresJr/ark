@@ -14,7 +14,21 @@
             :placeholder="descriptionPlaceholder()"
             class="ops-field-input"
         >
+        <span class="mt-1 block text-[11px] text-slate-500">Internal / ordering identity (brand, catalog name, part #).</span>
     </label>
+
+    @if (\App\Ark\Operations\Settings\ShopSettings::current()->customerPartAllowDescriptionOverride())
+        <label class="ops-field">
+            <span class="ops-field-label">Customer description</span>
+            <input
+                name="customer_description"
+                value="{{ $customerDescription ?? '' }}"
+                placeholder="Optional — clean label for estimate / PDF"
+                class="ops-field-input"
+            >
+            <span class="mt-1 block text-[11px] text-slate-500">Shown on customer documents. Leave blank to use the shop presentation mode.</span>
+        </label>
+    @endif
 
     <div class="ops-part-line-pricing">
         <p class="ops-part-line-pricing-heading">Pricing</p>

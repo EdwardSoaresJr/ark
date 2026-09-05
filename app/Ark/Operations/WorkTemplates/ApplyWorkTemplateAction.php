@@ -2,6 +2,7 @@
 
 namespace App\Ark\Operations\WorkTemplates;
 
+use App\Ark\Operations\Parts\CustomerPartDescriptionAttributes;
 use App\Ark\Operations\EstimatePricing\LaborRateOverrideReason;
 use App\Ark\Operations\Documents\EstimateDocumentService;
 use App\Ark\Operations\Events\OperationalEventName;
@@ -46,6 +47,7 @@ final class ApplyWorkTemplateAction
         private readonly OperationalEventRecorder $events,
         private readonly RepairOrderLifecycleTransition $lifecycle,
         private readonly RefreshCustomerInvoiceAction $refreshInvoice,
+        private readonly CustomerPartDescriptionAttributes $customerDescriptions,
     ) {}
 
     /**
@@ -274,6 +276,12 @@ final class ApplyWorkTemplateAction
         $data = $type->applyInputDefaults($data);
         $pricingAttributes = $this->pricing->attributesFor($data, $repairOrder);
         $resolvedQuantity = $pricingAttributes['quantity'] ?? $data['quantity'];
+        $customerDescription = $type->isPart()
+            ? $this->customerDescriptions->forCreate((string) $blueprint->description)
+            : [
+                'customer_description' => null,
+                'customer_description_source' => null,
+            ];
 
         if ($type->isLabor() && $blueprint->unit_price_cents !== null) {
             $pricingAttributes['unit_price_cents'] = $blueprint->unit_price_cents;
@@ -300,7 +308,8 @@ final class ApplyWorkTemplateAction
             'repair_order_work_group_id' => $workGroup->id,
             'type' => $type,
             'description' => $blueprint->description,
-            'customer_description' => null,
+            'customer_description' => $customerDescription['customer_description'],
+            'customer_description_source' => $customerDescription['customer_description_source'],
             'quantity' => $resolvedQuantity,
             'unit_price_cents' => $pricingAttributes['unit_price_cents'],
             'part_cost_cents' => $pricingAttributes['part_cost_cents'],
