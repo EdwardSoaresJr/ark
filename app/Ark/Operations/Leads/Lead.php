@@ -2,6 +2,7 @@
 
 namespace App\Ark\Operations\Leads;
 
+use App\Ark\Operations\Appointments\AppointmentRequestAvailability;
 use App\Ark\Operations\Conversations\Conversation;
 use App\Ark\Operations\Customers\Customer;
 use App\Ark\Operations\PhoneNumber;
@@ -155,6 +156,37 @@ class Lead extends Model
 
         return $this->state === LeadState::WaitingCustomer
             && $this->updated_at->lt($now->copy()->subDays(2));
+    }
+
+    public function preferredPeriod(): ?string
+    {
+        $period = $this->metadata['preferred_period'] ?? null;
+
+        if (! is_string($period) || $period === '') {
+            return null;
+        }
+
+        return in_array($period, AppointmentRequestAvailability::periodValues(), true)
+            ? $period
+            : null;
+    }
+
+    public function preferredPeriodLabel(): ?string
+    {
+        $period = $this->preferredPeriod();
+
+        return $period !== null
+            ? AppointmentRequestAvailability::periodLabel($period)
+            : null;
+    }
+
+    public function withPreferredPeriod(string $period): self
+    {
+        $metadata = is_array($this->metadata) ? $this->metadata : [];
+        $metadata['preferred_period'] = $period;
+        $this->metadata = $metadata;
+
+        return $this;
     }
 
     public function scopeNotSpam(Builder $query): Builder

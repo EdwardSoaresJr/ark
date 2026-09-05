@@ -262,6 +262,7 @@ final class CommunicationsWorkspaceIdentityProjection
             'vehicle_id' => $primaryRo?->vehicle_id,
             'repair_order_id' => $primaryRo?->id,
             'conversation_id' => $conversation?->id,
+            'lead_id' => $lead?->id,
         ]));
 
         $textUrl = $conversation !== null

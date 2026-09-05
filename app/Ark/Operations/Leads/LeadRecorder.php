@@ -45,6 +45,10 @@ class LeadRecorder
         $concern = trim($data['concern']);
         $state = $forcedState ?? LeadState::Received;
         $contactPreference = $data['contact_preference'] ?? LeadContactPreference::Text;
+        $metadata = is_array($data['metadata'] ?? null) ? $data['metadata'] : [];
+        if (isset($data['preferred_period']) && is_string($data['preferred_period']) && $data['preferred_period'] !== '') {
+            $metadata['preferred_period'] = $data['preferred_period'];
+        }
         $vehicleAttributes = [
             'vehicle_id' => Arr::get($data, 'vehicle_id'),
             'customer_id' => Arr::get($data, 'customer_id'),
@@ -64,7 +68,7 @@ class LeadRecorder
                 'contact_email' => filled($data['contact_email'] ?? null) ? trim((string) $data['contact_email']) : null,
                 'contact_preference' => $contactPreference,
                 ...$vehicleAttributes,
-                'metadata' => $data['metadata'] ?? null,
+                'metadata' => $metadata !== [] ? $metadata : null,
                 'spam_signals' => $spamSignals !== [] ? $spamSignals : null,
                 ...($ingress?->observationAttributes() ?? []),
             ]);
@@ -87,7 +91,7 @@ class LeadRecorder
             'contact_email' => filled($data['contact_email'] ?? null) ? trim((string) $data['contact_email']) : null,
             'contact_preference' => $contactPreference,
             ...$vehicleAttributes,
-            'metadata' => $data['metadata'] ?? null,
+            'metadata' => $metadata !== [] ? $metadata : null,
             'spam_signals' => $spamSignals !== [] ? $spamSignals : null,
             ...($ingress?->observationAttributes() ?? []),
         ]), function (Lead $lead): void {

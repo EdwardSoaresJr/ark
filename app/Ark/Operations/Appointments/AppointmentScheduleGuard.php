@@ -112,7 +112,7 @@ final class AppointmentScheduleGuard
         }
 
         $labels = $conflicts->map(function (Appointment $appointment): string {
-            $who = $appointment->customer?->name ?? 'Customer';
+            $who = $appointment->displayName();
             $when = ShopDisplayTimezone::format($appointment->starts_at, 'D g:ia') ?? 'scheduled';
 
             return "{$who} ({$when})";

@@ -159,8 +159,8 @@ test('schedule search can create a customer and continue without a vehicle', fun
     $this->actingAs($advisor)
         ->get(route('operations.schedule', ['q' => '555-0199']))
         ->assertOk()
-        ->assertSee('Add &amp; schedule', false)
-        ->assertSee('vehicle can wait until they arrive', false);
+        ->assertSee('Add customer &amp; schedule', false)
+        ->assertSee('Customer and vehicle can wait until arrival', false);
 
     $response = $this->actingAs($advisor)
         ->post(route('operations.customers.store'), [
@@ -508,21 +508,25 @@ test('advisor can open schedule create from a repair order', function () {
         'concern_summary' => 'Comeback noise',
     ]);
 
-    $this->actingAs($advisor)
+    $html = $this->actingAs($advisor)
         ->get(route('operations.schedule', [
             'repair_order' => $repairOrder->id,
         ]))
         ->assertOk()
         ->assertSee('Comeback noise', false)
         ->assertSee('labor hours — used for daily shop capacity', false)
-        ->assertDontSee('name="workstation_id"', false)
         ->assertDontSee('name="technician_user_id"', false)
         ->assertSee('name="starts_time"', false)
         ->assertSee('name="duration_minutes"', false)
         ->assertDontSee('name="ends_time"', false)
         ->assertSee('name="repair_order_id"', false)
         ->assertDontSee('type="datetime-local"', false)
-        ->assertDontSee('Work station is required', false);
+        ->assertDontSee('Work station is required', false)
+        ->getContent();
+
+    // Ops shell station-bind chrome also uses workstation_id; appointment create form must not.
+    expect(preg_match('/<form method="POST"[^>]*action="[^"]*\/app\/appointments"[^>]*>[\s\S]*?<\/form>/i', $html, $m) === 1)->toBeTrue()
+        ->and($m[0])->not->toContain('name="workstation_id"');
 
     $this->actingAs($advisor)
         ->get(route('operations.repair-orders.show', $repairOrder))

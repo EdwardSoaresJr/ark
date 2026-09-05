@@ -3,6 +3,7 @@
 namespace App\Ark\Operations\Appointments;
 
 use App\Ark\Operations\Customers\Customer;
+use App\Ark\Operations\Leads\Lead;
 use App\Ark\Operations\RepairOrders\RepairOrder;
 use App\Ark\Operations\Vehicles\Vehicle;
 use App\Ark\Operations\Workstations\Workstation;
@@ -13,11 +14,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'customer_id',
+    'contact_name',
+    'contact_phone',
+    'contact_email',
     'vehicle_id',
     'advisor_user_id',
     'technician_user_id',
     'workstation_id',
     'repair_order_id',
+    'lead_id',
     'created_by_user_id',
     'starts_at',
     'ends_at',
@@ -61,9 +66,29 @@ class Appointment extends Model
         return $this->belongsTo(Customer::class);
     }
 
+    public function lead(): BelongsTo
+    {
+        return $this->belongsTo(Lead::class);
+    }
+
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class);
+    }
+
+    public function displayName(): string
+    {
+        return AppointmentBookingIdentity::displayName($this);
+    }
+
+    public function displayPhone(): ?string
+    {
+        return AppointmentBookingIdentity::displayPhone($this);
+    }
+
+    public function displayEmail(): ?string
+    {
+        return AppointmentBookingIdentity::displayEmail($this);
     }
 
     public function advisor(): BelongsTo

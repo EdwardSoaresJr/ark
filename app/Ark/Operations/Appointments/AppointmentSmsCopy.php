@@ -2,7 +2,6 @@
 
 namespace App\Ark\Operations\Appointments;
 
-use App\Ark\Operations\Settings\ShopDisplayTimezone;
 use App\Ark\Operations\Settings\ShopSettings;
 use Illuminate\Support\Str;
 
@@ -15,7 +14,7 @@ final class AppointmentSmsCopy
     public static function confirmation(Appointment $appointment): string
     {
         $shop = self::shopName();
-        $when = self::whenLabel($appointment);
+        $when = AppointmentExpectationFormatter::confirmedWhenLabel($appointment);
         $concern = self::concernSnippet($appointment);
 
         return self::withReplyMenu(
@@ -26,7 +25,7 @@ final class AppointmentSmsCopy
     public static function dayBeforeReminder(Appointment $appointment): string
     {
         $shop = self::shopName();
-        $time = ShopDisplayTimezone::format($appointment->starts_at, 'g:i A') ?? 'your appointment time';
+        $time = AppointmentExpectationFormatter::confirmedTimeFragment($appointment);
         $concern = self::concernSnippet($appointment);
 
         return self::withReplyMenu(
@@ -37,7 +36,7 @@ final class AppointmentSmsCopy
     public static function hoursBeforeReminder(Appointment $appointment, int $hours): string
     {
         $shop = self::shopName();
-        $time = ShopDisplayTimezone::format($appointment->starts_at, 'g:i A') ?? 'soon';
+        $time = AppointmentExpectationFormatter::confirmedTimeFragment($appointment);
         $concern = self::concernSnippet($appointment);
         $window = $hours === 1 ? 'about 1 hour' : "about {$hours} hours";
 
@@ -55,12 +54,6 @@ final class AppointmentSmsCopy
             ."3 - Get Directions\n"
             ."4 - Call Me\n\n"
             .'Reply STOP to opt out.';
-    }
-
-    private static function whenLabel(Appointment $appointment): string
-    {
-        return ShopDisplayTimezone::format($appointment->starts_at, 'D M j \\a\\t g:i A')
-            ?? 'soon';
     }
 
     private static function concernSnippet(Appointment $appointment): string

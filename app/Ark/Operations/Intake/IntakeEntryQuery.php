@@ -74,6 +74,41 @@ final class IntakeEntryQuery
     }
 
     /**
+     * @return array<string, int|string>
+     */
+    public static function fromAppointment(\App\Ark\Operations\Appointments\Appointment $appointment): array
+    {
+        if ($appointment->lead_id !== null && $appointment->lead !== null) {
+            $params = self::fromLead($appointment->lead);
+        } elseif ($appointment->customer_id !== null) {
+            $params = ['customer_id' => (int) $appointment->customer_id];
+            if ($appointment->vehicle_id !== null) {
+                $params['vehicle_id'] = (int) $appointment->vehicle_id;
+            }
+        } else {
+            $params = self::fromInboundPhoneMessage(
+                (string) ($appointment->contact_phone ?? ''),
+                (string) ($appointment->concern ?? ''),
+            );
+            $name = trim((string) ($appointment->contact_name ?? ''));
+            if ($name !== '') {
+                $params['q'] = $name;
+            }
+        }
+
+        if ($appointment->vehicle_id !== null && ! isset($params['vehicle_id'])) {
+            $params['vehicle_id'] = (int) $appointment->vehicle_id;
+        }
+
+        $concern = trim((string) ($appointment->concern ?? ''));
+        if ($concern !== '' && ! isset($params['concern'])) {
+            $params['concern'] = mb_substr($concern, 0, 5000);
+        }
+
+        return $params;
+    }
+
+    /**
      * @return list<array{customer_states: string, recommendation_intent: string, billing_posture: string}>
      */
     public static function initialConcernRowsFromRequest(string $concern): array

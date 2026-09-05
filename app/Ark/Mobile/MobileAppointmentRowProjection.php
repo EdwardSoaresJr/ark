@@ -13,11 +13,6 @@ final class MobileAppointmentRowProjection
      */
     public function present(Appointment $appointment, ?User $viewer = null): array
     {
-        $customer = trim(collect([
-            $appointment->customer?->first_name,
-            $appointment->customer?->last_name,
-        ])->filter()->implode(' '));
-
         $vehicle = trim(collect([
             $appointment->vehicle?->year,
             $appointment->vehicle?->make,
@@ -32,7 +27,7 @@ final class MobileAppointmentRowProjection
             'time_label' => $startsAt->format('g:i A'),
             'ends_label' => $appointment->ends_at->timezone($displayTimezone)->format('g:i A'),
             'customer_id' => $appointment->customer_id,
-            'customer_name' => $customer !== '' ? $customer : 'Unknown customer',
+            'customer_name' => $appointment->displayName(),
             'vehicle_id' => $appointment->vehicle_id,
             'vehicle_label' => $vehicle !== '' ? $vehicle : null,
             'concern' => $appointment->concern,

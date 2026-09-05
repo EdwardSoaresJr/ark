@@ -18,7 +18,15 @@
             <div class="ops-page-toolbar">
                 <div>
                     <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">{{ \App\Ark\Operations\Settings\ShopDisplayTimezone::format($appointment->starts_at, 'l, M j · g:i A') }}</p>
-                    <h2 class="mt-0.5 text-base font-black text-slate-950">{{ $appointment->customer?->name ?? 'Customer' }}</h2>
+                    <h2 class="mt-0.5 text-base font-black text-slate-950">{{ $appointment->displayName() }}</h2>
+                    @if ($appointment->customer_id === null)
+                        <p class="mt-0.5 text-[11px] font-semibold text-amber-800">Not linked to a customer yet</p>
+                    @endif
+                    @if (filled($appointment->displayPhone()))
+                        <p class="mt-0.5 text-xs text-slate-600">{{ $appointment->displayPhone() }}@if (filled($appointment->displayEmail())) · {{ $appointment->displayEmail() }}@endif</p>
+                    @elseif (filled($appointment->displayEmail()))
+                        <p class="mt-0.5 text-xs text-slate-600">{{ $appointment->displayEmail() }}</p>
+                    @endif
                     @php
                         $appointmentLengthMinutes = max(
                             15,
@@ -62,22 +70,28 @@
             </div>
 
             <div class="flex flex-wrap gap-2 px-3 py-2.5">
-                <a href="{{ route('operations.customers.show', $appointment->customer_id) }}" class="ops-page-link">Customer</a>
-                @php
-                    $customerPhone = $appointment->customer?->display_phone;
-                    $customerHubUrl = route('operations.customers.show', $appointment->customer_id);
-                @endphp
-                @if (filled($customerPhone))
-                    <a href="tel:{{ preg_replace('/\D+/', '', $customerPhone) }}" class="ops-page-link">Call</a>
-                    <a href="{{ $customerHubUrl }}?compose=text#customer-communication" class="ops-page-link">Text</a>
+                @if ($appointment->customer_id)
+                    <a href="{{ route('operations.customers.show', $appointment->customer_id) }}" class="ops-page-link">Customer</a>
+                    @php
+                        $customerPhone = $appointment->displayPhone();
+                        $customerHubUrl = route('operations.customers.show', $appointment->customer_id);
+                    @endphp
+                    @if (filled($customerPhone))
+                        <a href="tel:{{ preg_replace('/\D+/', '', $customerPhone) }}" class="ops-page-link">Call</a>
+                        <a href="{{ $customerHubUrl }}?compose=text#customer-communication" class="ops-page-link">Text</a>
+                    @endif
+                @else
+                    @if (filled($createCustomerUrl ?? null))
+                        <a href="{{ $createCustomerUrl }}" class="ops-page-link">Create customer</a>
+                    @endif
+                    @if (filled($appointment->displayPhone()))
+                        <a href="tel:{{ preg_replace('/\D+/', '', $appointment->displayPhone()) }}" class="ops-page-link">Call</a>
+                    @endif
                 @endif
                 @if ($appointment->repair_order_id)
                     <a href="{{ route('operations.repair-orders.show', $appointment->repairOrder) }}" class="ops-page-link">Open RO</a>
                 @else
-                    <a href="{{ route('operations.intake.create', array_filter([
-                        'customer_id' => $appointment->customer_id,
-                        'vehicle_id' => $appointment->vehicle_id,
-                    ])) }}" class="ops-page-link ops-page-link--primary">Check In / Create RO</a>
+                    <a href="{{ $intakeUrl }}" class="ops-page-link ops-page-link--primary">Check In / Create RO</a>
                 @endif
             </div>
             @if (! $appointment->repair_order_id && $appointment->status === App\Ark\Operations\Appointments\AppointmentStatus::Arrived)
@@ -179,6 +193,27 @@
                     @csrf
                     @method('PATCH')
                     <input type="hidden" name="customer_id" value="{{ $appointment->customer_id }}">
+                    @if ($appointment->lead_id)
+                        <input type="hidden" name="lead_id" value="{{ $appointment->lead_id }}">
+                    @endif
+                    <div class="space-y-2 border border-slate-200 bg-slate-50/60 p-3">
+                        <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Booking contact</p>
+                        <p class="text-[11px] text-slate-500">Appointment-owned — correcting a typo here does not change the Customer record.</p>
+                        <div class="grid gap-3 sm:grid-cols-2">
+                            <label class="block sm:col-span-2">
+                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Name</span>
+                                <input type="text" name="contact_name" value="{{ old('contact_name', $appointment->contact_name) }}" class="mt-0.5 h-9 w-full rounded-sm border border-slate-300 bg-white px-2 text-sm">
+                            </label>
+                            <label class="block">
+                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Phone</span>
+                                <input type="tel" name="contact_phone" value="{{ old('contact_phone', $appointment->contact_phone) }}" class="mt-0.5 h-9 w-full rounded-sm border border-slate-300 bg-white px-2 text-sm">
+                            </label>
+                            <label class="block">
+                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Email</span>
+                                <input type="email" name="contact_email" value="{{ old('contact_email', $appointment->contact_email) }}" class="mt-0.5 h-9 w-full rounded-sm border border-slate-300 bg-white px-2 text-sm">
+                            </label>
+                        </div>
+                    </div>
                     <x-operations.appointment-datetime-fields
                         :starts-at="old('starts_at', \App\Ark\Operations\Settings\ShopDisplayTimezone::present($appointment->starts_at)->format('Y-m-d\TH:i'))"
                         :ends-at="old('ends_at', \App\Ark\Operations\Settings\ShopDisplayTimezone::present($appointment->ends_at)->format('Y-m-d\TH:i'))"

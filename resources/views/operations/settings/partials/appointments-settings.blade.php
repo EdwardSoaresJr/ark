@@ -291,6 +291,93 @@
                 </label>
             @endforeach
         </fieldset>
+
+        @php
+            $requestWindows = $requestAvailability['request_windows']
+                ?? \App\Ark\Operations\Appointments\ScheduleRequestWindows::forShop($settings);
+        @endphp
+        <fieldset class="space-y-3">
+            <legend class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Appointment request preferences</legend>
+            <p class="text-xs leading-5 text-slate-500">
+                These settings control the times customers can <strong>request</strong>. Staff still confirms an exact appointment time.
+            </p>
+
+            <div class="space-y-3">
+                <div class="rounded-sm border border-slate-200 bg-slate-50/60 p-3 space-y-2">
+                    <label class="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                        <input type="hidden" name="appointment_request_availability[request_windows][morning][enabled]" value="0">
+                        <input type="checkbox" name="appointment_request_availability[request_windows][morning][enabled]" value="1" class="rounded border-slate-300" @checked(old('appointment_request_availability.request_windows.morning.enabled', $requestWindows['morning']['enabled']))>
+                        <span>Accept morning requests</span>
+                    </label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="block">
+                            <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">From</span>
+                            <input type="time" name="appointment_request_availability[request_windows][morning][open]" value="{{ old('appointment_request_availability.request_windows.morning.open', $requestWindows['morning']['open']) }}" class="mt-0.5 h-9 w-full rounded-sm border border-slate-300 bg-white px-2 text-sm">
+                        </label>
+                        <label class="block">
+                            <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">To</span>
+                            <input type="time" name="appointment_request_availability[request_windows][morning][close]" value="{{ old('appointment_request_availability.request_windows.morning.close', $requestWindows['morning']['close']) }}" class="mt-0.5 h-9 w-full rounded-sm border border-slate-300 bg-white px-2 text-sm">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="rounded-sm border border-slate-200 bg-slate-50/60 p-3 space-y-2">
+                    <label class="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                        <input type="hidden" name="appointment_request_availability[request_windows][afternoon][enabled]" value="0">
+                        <input type="checkbox" name="appointment_request_availability[request_windows][afternoon][enabled]" value="1" class="rounded border-slate-300" @checked(old('appointment_request_availability.request_windows.afternoon.enabled', $requestWindows['afternoon']['enabled']))>
+                        <span>Accept afternoon requests</span>
+                    </label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="block">
+                            <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">From</span>
+                            <input type="time" name="appointment_request_availability[request_windows][afternoon][open]" value="{{ old('appointment_request_availability.request_windows.afternoon.open', $requestWindows['afternoon']['open']) }}" class="mt-0.5 h-9 w-full rounded-sm border border-slate-300 bg-white px-2 text-sm">
+                        </label>
+                        <label class="block">
+                            <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">To</span>
+                            <input type="time" name="appointment_request_availability[request_windows][afternoon][close]" value="{{ old('appointment_request_availability.request_windows.afternoon.close', $requestWindows['afternoon']['close']) }}" class="mt-0.5 h-9 w-full rounded-sm border border-slate-300 bg-white px-2 text-sm">
+                        </label>
+                    </div>
+                </div>
+
+                <label class="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                    <input type="hidden" name="appointment_request_availability[request_windows][flexible_enabled]" value="0">
+                    <input type="checkbox" name="appointment_request_availability[request_windows][flexible_enabled]" value="1" class="rounded border-slate-300" @checked(old('appointment_request_availability.request_windows.flexible_enabled', $requestWindows['flexible_enabled']))>
+                    <span>Accept flexible / any-time requests</span>
+                </label>
+            </div>
+        </fieldset>
+
+        <fieldset class="space-y-2">
+            <legend class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Optional latest arrival</legend>
+            <p class="text-xs leading-5 text-slate-500">
+                Request windows (Morning / Afternoon above) only describe customer preference.
+                Confirmed appointments may still use any valid time within shop scheduling hours unless you enable a cutoff here.
+            </p>
+            <label class="flex items-center gap-2 text-sm font-semibold text-slate-800">
+                <input type="hidden" name="appointment_request_availability[request_windows][latest_appointment_arrival_enabled]" value="0">
+                <input
+                    type="checkbox"
+                    name="appointment_request_availability[request_windows][latest_appointment_arrival_enabled]"
+                    value="1"
+                    class="rounded border-slate-300"
+                    @checked(old('appointment_request_availability.request_windows.latest_appointment_arrival_enabled', filled($requestWindows['latest_appointment_arrival'] ?? null)))
+                >
+                <span>Limit how late staff can schedule appointment starts</span>
+            </label>
+            <label class="block max-w-xs">
+                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Latest appointment arrival</span>
+                <input
+                    type="time"
+                    name="appointment_request_availability[request_windows][latest_appointment_arrival]"
+                    value="{{ old('appointment_request_availability.request_windows.latest_appointment_arrival', $requestWindows['latest_appointment_arrival'] ?? \App\Ark\Operations\Appointments\ScheduleRequestWindows::SUGGESTED_LATEST_ARRIVAL) }}"
+                    class="mt-0.5 h-9 w-full rounded-sm border border-slate-300 bg-white px-2 text-sm"
+                >
+                <span class="mt-0.5 block text-[11px] text-slate-500">Optional. Leave unchecked to allow starts through normal scheduling hours (e.g. close at 6:00 PM).</span>
+            </label>
+            @error('appointment_request_availability.request_windows')
+                <p class="text-xs font-semibold text-rose-700">{{ $message }}</p>
+            @enderror
+        </fieldset>
     </div>
 
     @include('operations.settings.partials.workstation-presence-settings', ['settings' => $settings])

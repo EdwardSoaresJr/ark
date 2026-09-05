@@ -18,6 +18,7 @@ final class ScheduleUrl
             'vehicle' => self::intOrNull($context['vehicle'] ?? $context['vehicle_id'] ?? null),
             'repair_order' => self::intOrNull($context['repair_order'] ?? $context['repair_order_id'] ?? null),
             'conversation' => self::intOrNull($context['conversation'] ?? $context['conversation_id'] ?? null),
+            'lead' => self::intOrNull($context['lead'] ?? $context['lead_id'] ?? null),
             'starts_at' => self::stringOrNull($context['starts_at'] ?? null),
             'ends_at' => self::stringOrNull($context['ends_at'] ?? null),
             'technician_user_id' => self::intOrNull($context['technician_user_id'] ?? null),

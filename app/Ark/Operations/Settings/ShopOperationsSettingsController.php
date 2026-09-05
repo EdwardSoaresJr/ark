@@ -174,21 +174,82 @@ public function updateWorkflow(Request $request): RedirectResponse
                 $horizonDays = (int) $request->input('appointment_request_availability.horizon_custom_days', $horizonDays);
             }
 
-            $payload['appointment_request_availability'] = \App\Ark\Operations\Appointments\AppointmentRequestAvailability::normalize(
+            $existingWindows = \App\Ark\Operations\Appointments\ScheduleRequestWindows::normalize(
+                is_array($settings->appointment_request_availability) ? $settings->appointment_request_availability : null,
+            );
+
+            $hasWindowFields = $request->has('appointment_request_availability.request_windows')
+                || $request->exists('appointment_request_availability.request_windows.morning.open')
+                || $request->exists('appointment_request_availability.request_windows.afternoon.open')
+                || $request->exists('appointment_request_availability.request_windows.flexible_enabled')
+                || $request->exists('appointment_request_availability.request_windows.latest_appointment_arrival_enabled')
+                || $request->exists('appointment_request_availability.request_windows.latest_appointment_arrival');
+
+            $latestEnabled = $request->boolean('appointment_request_availability.request_windows.latest_appointment_arrival_enabled');
+            $latestValue = $latestEnabled && $request->filled('appointment_request_availability.request_windows.latest_appointment_arrival')
+                ? (string) $request->input('appointment_request_availability.request_windows.latest_appointment_arrival')
+                : null;
+
+            $requestWindowsInput = [
+                'request_windows' => $hasWindowFields
+                    ? [
+                        'morning' => [
+                            'enabled' => $request->boolean('appointment_request_availability.request_windows.morning.enabled'),
+                            'open' => (string) $request->input('appointment_request_availability.request_windows.morning.open', $existingWindows['morning']['open']),
+                            'close' => (string) $request->input('appointment_request_availability.request_windows.morning.close', $existingWindows['morning']['close']),
+                        ],
+                        'afternoon' => [
+                            'enabled' => $request->boolean('appointment_request_availability.request_windows.afternoon.enabled'),
+                            'open' => (string) $request->input('appointment_request_availability.request_windows.afternoon.open', $existingWindows['afternoon']['open']),
+                            'close' => (string) $request->input('appointment_request_availability.request_windows.afternoon.close', $existingWindows['afternoon']['close']),
+                        ],
+                        'flexible_enabled' => $request->boolean('appointment_request_availability.request_windows.flexible_enabled'),
+                        'latest_appointment_arrival' => $request->exists('appointment_request_availability.request_windows.latest_appointment_arrival_enabled')
+                            ? $latestValue
+                            : $existingWindows['latest_appointment_arrival'],
+                    ]
+                    : $existingWindows,
+            ];
+
+            $normalizedAvailability = \App\Ark\Operations\Appointments\AppointmentRequestAvailability::normalize(
                 [
                     'weekly' => $weekly,
                     'horizon_days' => $horizonDays,
                     'minimum_notice_days' => (int) $request->input('appointment_request_availability.minimum_notice_days', 0),
+                    ...$requestWindowsInput,
                 ],
                 $effectiveSchedulingHours,
             );
+
+            $windowMessages = \App\Ark\Operations\Appointments\ScheduleRequestWindows::validationMessages(
+                $normalizedAvailability['request_windows'],
+                $effectiveSchedulingHours,
+            );
+            if ($windowMessages !== []) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'appointment_request_availability.request_windows' => $windowMessages[0],
+                ]);
+            }
+
+            $windowWarnings = \App\Ark\Operations\Appointments\ScheduleRequestWindows::validationWarnings(
+                $normalizedAvailability['request_windows'],
+                $effectiveSchedulingHours,
+            );
+
+            $payload['appointment_request_availability'] = $normalizedAvailability;
         }
 
         $settings->update($payload);
 
-        return redirect()
+        $redirect = redirect()
             ->route('operations.settings.shop.edit', ['section' => 'operations'])
             ->with('status', 'Operations settings saved.');
+
+        if (($windowWarnings ?? []) !== []) {
+            $redirect->with('warning', $windowWarnings[0]);
+        }
+
+        return $redirect;
     }
 
     public function applyOperationalProfile(Request $request): RedirectResponse

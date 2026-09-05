@@ -36,7 +36,7 @@ test('schedule from customer prefills customer and skips search', function () {
         ->get(ScheduleUrl::to(['customer' => $customer->id]))
         ->assertOk()
         ->assertSee('Pat Lane', false)
-        ->assertDontSee('Find the customer first', false)
+        ->assertDontSee('Find an existing customer', false)
         ->assertSee('name="vehicle_id"', false)
         ->assertSee('value="'.$vehicle->id.'"', false);
 });
@@ -169,7 +169,7 @@ test('schedule from conversation resolves linked customer and single vehicle', f
         ->assertDontSee('Identify the customer first', false);
 });
 
-test('schedule from unlinked conversation requires customer identification', function () {
+test('schedule from unlinked conversation prefills phone contact', function () {
     $advisor = actingAsLearnCurrentAdvisor();
     $conversation = Conversation::query()->create([
         'contact_surface' => ConversationContactSurface::Phone,
@@ -180,8 +180,9 @@ test('schedule from unlinked conversation requires customer identification', fun
     $this->actingAs($advisor)
         ->get(ScheduleUrl::to(['conversation' => $conversation->id]))
         ->assertOk()
-        ->assertSee('Identify the customer first', false)
-        ->assertDontSee('name="concern"', false);
+        ->assertSee('name="contact_phone"', false)
+        ->assertSee('5550299', false)
+        ->assertDontSee('Identify the customer first', false);
 });
 
 test('legacy appointments create still works alongside schedule entry', function () {
@@ -200,5 +201,5 @@ test('legacy appointments create still works alongside schedule entry', function
     $this->actingAs($advisor)
         ->get(route('operations.schedule'))
         ->assertOk()
-        ->assertSee('Find the customer first', false);
+        ->assertSee('Find an existing customer', false);
 });

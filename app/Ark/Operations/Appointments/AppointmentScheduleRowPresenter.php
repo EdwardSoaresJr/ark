@@ -51,10 +51,7 @@ final class AppointmentScheduleRowPresenter
      */
     public function present(Appointment $appointment, ?User $viewer = null, bool $withDayLabel = false): array
     {
-        $customer = trim(collect([
-            $appointment->customer?->first_name,
-            $appointment->customer?->last_name,
-        ])->filter()->implode(' '));
+        $customerName = $appointment->displayName();
 
         $vehicle = trim(collect([
             $appointment->vehicle?->year,
@@ -84,9 +81,17 @@ final class AppointmentScheduleRowPresenter
             ? $appointment->workstation->displayLocation()
             : null;
 
-        $customerUrl = route('operations.customers.show', $appointment->customer_id);
-        $phoneDigits = PhoneNumber::digits((string) ($appointment->customer?->phone ?? ''));
+        $customerUrl = $appointment->customer_id !== null
+            ? route('operations.customers.show', $appointment->customer_id)
+            : route('operations.appointments.show', $appointment);
+        $phoneDigits = PhoneNumber::digits((string) ($appointment->displayPhone() ?? ''));
         $hasPhone = $phoneDigits !== '';
+        $textUrl = null;
+        if ($hasPhone && $appointment->customer_id !== null) {
+            $textUrl = $customerUrl.'?compose=text#customer-communication';
+        } elseif ($hasPhone) {
+            $textUrl = route('operations.appointments.show', $appointment).'?comms=1';
+        }
 
         $row = [
             'id' => $appointment->id,
@@ -97,7 +102,7 @@ final class AppointmentScheduleRowPresenter
             'starts_at_iso' => $startsAt->toIso8601String(),
             'ends_at_iso' => $endsAt->toIso8601String(),
             'duration_minutes' => $durationMinutes,
-            'customer_name' => $customer !== '' ? $customer : 'Unknown customer',
+            'customer_name' => $customerName,
             'vehicle_label' => $vehicle !== '' ? $vehicle : null,
             'concern' => $appointment->concern,
             'status' => $appointment->status->value,
@@ -115,7 +120,7 @@ final class AppointmentScheduleRowPresenter
             'is_mine' => $isMine,
             'customer_url' => $customerUrl,
             'call_url' => $hasPhone ? 'tel:'.$phoneDigits : null,
-            'text_url' => $hasPhone ? $customerUrl.'?compose=text#customer-communication' : null,
+            'text_url' => $textUrl,
             'repair_order_url' => $appointment->repair_order_id !== null
                 ? route('operations.repair-orders.show', $appointment->repairOrder)
                 : null,

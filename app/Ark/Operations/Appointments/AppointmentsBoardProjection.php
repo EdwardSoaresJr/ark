@@ -71,7 +71,7 @@ final class AppointmentsBoardProjection
             'repair_order_id' => $appointment->repairOrder?->repair_order_id,
             'repair_order_status' => $appointment->repairOrder?->status?->value,
             'repair_order_status_label' => $appointment->repairOrder?->status?->label(),
-            'customer_label' => $appointment->customer?->name,
+            'customer_label' => $appointment->displayName(),
             'vehicle_label' => $vehicle === null
                 ? null
                 : trim(implode(' ', array_filter([$vehicle->year, $vehicle->make, $vehicle->model]))),

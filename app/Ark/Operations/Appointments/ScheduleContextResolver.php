@@ -5,6 +5,8 @@ namespace App\Ark\Operations\Appointments;
 use App\Ark\Operations\Conversations\Conversation;
 use App\Ark\Operations\Conversations\ConversationLink;
 use App\Ark\Operations\Customers\Customer;
+use App\Ark\Operations\Leads\Lead;
+use App\Ark\Operations\PhoneNumber;
 use App\Ark\Operations\RepairOrders\RepairOrder;
 use App\Ark\Operations\RepairOrders\RepairOrderStatus;
 use App\Ark\Operations\Vehicles\Vehicle;
@@ -34,6 +36,11 @@ final class ScheduleContextResolver
 
         if ($customerId !== null) {
             return $this->fromCustomer($customerId);
+        }
+
+        $leadId = $this->queryInt($request, 'lead', 'lead_id');
+        if ($leadId !== null) {
+            return $this->fromLead($leadId);
         }
 
         $conversationId = $this->queryInt($request, 'conversation', 'conversation_id');
@@ -107,15 +114,63 @@ final class ScheduleContextResolver
         );
     }
 
+    public function fromLead(int $leadId): ScheduleContext
+    {
+        $lead = Lead::query()->findOrFail($leadId);
+
+        if ($lead->customer_id !== null) {
+            $context = $this->fromCustomer((int) $lead->customer_id, $lead->vehicle_id !== null ? (int) $lead->vehicle_id : null);
+
+            return new ScheduleContext(
+                customerId: $context->customerId,
+                vehicleId: $context->vehicleId,
+                repairOrderId: $lead->repair_order_id !== null ? (int) $lead->repair_order_id : $context->repairOrderId,
+                conversationId: $lead->conversation_id !== null ? (int) $lead->conversation_id : $context->conversationId,
+                leadId: (int) $lead->id,
+                defaultConcern: $this->concernFromLead($lead) ?? $context->defaultConcern,
+                contactName: $this->contactNameFromLead($lead),
+                contactPhone: $this->contactPhoneFromLead($lead),
+                contactEmail: $this->contactEmailFromLead($lead),
+                vehicleContextLabel: $this->vehicleLabelFromLead($lead),
+                entry: 'lead',
+            );
+        }
+
+        return new ScheduleContext(
+            conversationId: $lead->conversation_id !== null ? (int) $lead->conversation_id : null,
+            leadId: (int) $lead->id,
+            defaultConcern: $this->concernFromLead($lead),
+            contactName: $this->contactNameFromLead($lead),
+            contactPhone: $this->contactPhoneFromLead($lead),
+            contactEmail: $this->contactEmailFromLead($lead),
+            vehicleContextLabel: $this->vehicleLabelFromLead($lead),
+            needsCustomerIdentification: false,
+            entry: 'lead',
+        );
+    }
+
     public function fromConversation(int $conversationId): ScheduleContext
     {
         $conversation = Conversation::query()->findOrFail($conversationId);
         $customerId = $this->linkedCustomerId($conversation);
+        $lead = Lead::query()
+            ->where('conversation_id', $conversation->id)
+            ->orderByDesc('id')
+            ->first();
 
         if ($customerId === null) {
+            $phone = PhoneNumber::normalize((string) $conversation->contact_address)
+                ?? trim((string) $conversation->contact_address);
+
             return new ScheduleContext(
                 conversationId: (int) $conversation->id,
-                needsCustomerIdentification: true,
+                leadId: $lead?->id,
+                defaultConcern: $this->concernFromLead($lead),
+                contactName: $this->contactNameFromLead($lead),
+                contactPhone: $this->contactPhoneFromLead($lead) ?? ($phone !== '' ? $phone : null),
+                contactEmail: $this->contactEmailFromLead($lead),
+                vehicleContextLabel: $this->vehicleLabelFromLead($lead),
+                needsCustomerIdentification: false,
                 entry: 'conversation',
             );
         }
@@ -133,7 +188,12 @@ final class ScheduleContextResolver
                 vehicleId: $vehicleId,
                 repairOrderId: (int) $linkedRepairOrder->id,
                 conversationId: (int) $conversation->id,
-                defaultConcern: $this->concernFromRepairOrder($linkedRepairOrder),
+                leadId: $lead?->id,
+                defaultConcern: $this->concernFromRepairOrder($linkedRepairOrder) ?? $this->concernFromLead($lead),
+                contactName: $this->contactNameFromLead($lead),
+                contactPhone: $this->contactPhoneFromLead($lead),
+                contactEmail: $this->contactEmailFromLead($lead),
+                vehicleContextLabel: $this->vehicleLabelFromLead($lead),
                 entry: 'conversation',
             );
         }
@@ -151,9 +211,74 @@ final class ScheduleContextResolver
             vehicleId: $vehicleId,
             repairOrderId: $activeRepairOrder?->id,
             conversationId: (int) $conversation->id,
-            defaultConcern: $this->concernFromRepairOrder($activeRepairOrder),
+            leadId: $lead?->id,
+            defaultConcern: $this->concernFromRepairOrder($activeRepairOrder) ?? $this->concernFromLead($lead),
+            contactName: $this->contactNameFromLead($lead),
+            contactPhone: $this->contactPhoneFromLead($lead),
+            contactEmail: $this->contactEmailFromLead($lead),
+            vehicleContextLabel: $this->vehicleLabelFromLead($lead),
             entry: 'conversation',
         );
+    }
+
+    private function concernFromLead(?Lead $lead): ?string
+    {
+        if ($lead === null) {
+            return null;
+        }
+
+        $concern = trim((string) ($lead->concern ?? ''));
+
+        return $concern !== '' ? $concern : null;
+    }
+
+    private function contactNameFromLead(?Lead $lead): ?string
+    {
+        if ($lead === null) {
+            return null;
+        }
+
+        $name = trim((string) ($lead->contact_name ?? ''));
+
+        return $name !== '' ? $name : null;
+    }
+
+    private function contactPhoneFromLead(?Lead $lead): ?string
+    {
+        if ($lead === null) {
+            return null;
+        }
+
+        $phone = PhoneNumber::normalize((string) ($lead->contact_phone ?? ''))
+            ?? trim((string) ($lead->contact_phone ?? ''));
+
+        return $phone !== '' ? $phone : null;
+    }
+
+    private function contactEmailFromLead(?Lead $lead): ?string
+    {
+        if ($lead === null) {
+            return null;
+        }
+
+        $email = strtolower(trim((string) ($lead->contact_email ?? '')));
+
+        return $email !== '' ? $email : null;
+    }
+
+    private function vehicleLabelFromLead(?Lead $lead): ?string
+    {
+        if ($lead === null) {
+            return null;
+        }
+
+        $label = trim(collect([
+            $lead->vehicle_year,
+            $lead->vehicle_make,
+            $lead->vehicle_model,
+        ])->filter()->implode(' '));
+
+        return $label !== '' ? $label : null;
     }
 
     private function linkedCustomerId(Conversation $conversation): ?int

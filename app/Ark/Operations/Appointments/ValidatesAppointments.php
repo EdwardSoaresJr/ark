@@ -2,6 +2,7 @@
 
 namespace App\Ark\Operations\Appointments;
 
+use App\Ark\Operations\Customers\Customer;
 use App\Ark\Operations\RepairOrders\RepairOrder;
 use App\Ark\Operations\Vehicles\Vehicle;
 use Illuminate\Http\Request;
@@ -15,7 +16,11 @@ trait ValidatesAppointments
     protected function appointmentRules(?Appointment $appointment = null): array
     {
         return [
-            'customer_id' => ['required', 'integer', 'exists:customers,id'],
+            'customer_id' => ['nullable', 'integer', 'exists:customers,id'],
+            'contact_name' => ['nullable', 'string', 'max:255'],
+            'contact_phone' => ['nullable', 'string', 'max:32'],
+            'contact_email' => ['nullable', 'email', 'max:255'],
+            'lead_id' => ['nullable', 'integer', 'exists:leads,id'],
             'vehicle_id' => ['nullable', 'integer', 'exists:vehicles,id'],
             'advisor_user_id' => ['nullable', 'integer', 'exists:users,id'],
             'technician_user_id' => ['nullable', 'integer', 'exists:users,id'],
@@ -71,7 +76,38 @@ trait ValidatesAppointments
 
         unset($data['starts_date'], $data['starts_time'], $data['ends_date'], $data['ends_time'], $data['duration_minutes']);
 
-        if (isset($data['vehicle_id'], $data['customer_id'])) {
+        $customer = null;
+        if (filled($data['customer_id'] ?? null)) {
+            $customer = Customer::query()->find((int) $data['customer_id']);
+        }
+
+        if ($appointment !== null) {
+            $snapshots = AppointmentBookingIdentity::snapshotForUpdate(
+                $data,
+                $appointment,
+                $request->exists('contact_name'),
+                $request->exists('contact_phone'),
+                $request->exists('contact_email'),
+            );
+        } else {
+            $snapshots = AppointmentBookingIdentity::snapshotForCreate($data, $customer);
+        }
+
+        $data['contact_name'] = $snapshots['contact_name'];
+        $data['contact_phone'] = $snapshots['contact_phone'];
+        $data['contact_email'] = $snapshots['contact_email'];
+
+        if (! filled($data['customer_id'] ?? null)) {
+            $data['customer_id'] = null;
+        }
+
+        if (! filled($data['lead_id'] ?? null)) {
+            unset($data['lead_id']);
+        }
+
+        AppointmentBookingIdentity::assertValid($data, $customer);
+
+        if (isset($data['vehicle_id'], $data['customer_id']) && filled($data['customer_id'])) {
             Vehicle::query()
                 ->whereKey($data['vehicle_id'])
                 ->where('customer_id', $data['customer_id'])
@@ -97,7 +133,7 @@ trait ValidatesAppointments
      */
     private function mergeSplitDatetimes(array $data): array
     {
-        if (filled($data['starts_date'] ?? null) && filled($data['starts_time'] ?? null)) {
+        if (filled($data['starts_date'] ?? null) && filled($data['starts_time'] ?? null) && trim((string) $data['starts_time']) !== '') {
             $data['starts_at'] = $data['starts_date'].'T'.$data['starts_time'];
         }
 
@@ -108,6 +144,7 @@ trait ValidatesAppointments
         if (! filled($data['starts_at'] ?? null)) {
             throw \Illuminate\Validation\ValidationException::withMessages([
                 'starts_at' => 'Appointment day and time are required.',
+                'starts_time' => 'Choose an exact appointment time.',
             ]);
         }
 

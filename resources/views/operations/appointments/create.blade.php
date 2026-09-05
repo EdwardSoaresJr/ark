@@ -4,7 +4,9 @@
             <div class="ops-page-toolbar">
                 <div>
                     <h2 class="text-base font-black text-slate-950">Schedule appointment</h2>
-                    <p class="mt-1 text-xs text-slate-500">Customer first — vehicle is optional until they arrive. Day, time, and length are checked when you save.</p>
+                    <p class="mt-1 text-xs text-slate-500">
+                        Book the visit first. Customer and vehicle can wait until arrival.
+                    </p>
                 </div>
                 <a href="{{ route('operations.appointments.index') }}" class="ops-page-link">Back to schedule</a>
             </div>
@@ -19,19 +21,14 @@
             </div>
         @endif
 
-        @if ($customer === null)
+        @if ($customer === null && ! ($showUnlinkedForm ?? false))
             <div class="ops-board-shell space-y-3 p-3">
                 <div>
-                    @if (($scheduleContext->needsCustomerIdentification ?? false))
-                        <p class="text-sm font-bold text-slate-950">Identify the customer first</p>
-                        <p class="mt-0.5 text-xs text-slate-600">This conversation isn’t linked yet — search and pick the customer, then finish scheduling. ARK will not guess.</p>
-                    @else
-                        <p class="text-sm font-bold text-slate-950">Find the customer first</p>
-                        <p class="mt-0.5 text-xs text-slate-600">Search by name, phone, email, plate, or VIN — then finish scheduling.</p>
-                    @endif
+                    <p class="text-sm font-bold text-slate-950">Find an existing customer — or schedule a new caller</p>
+                    <p class="mt-0.5 text-xs text-slate-600">Search by name, phone, email, plate, or VIN. Or book with name and phone only.</p>
                 </div>
                 <form method="GET" action="{{ route('operations.schedule') }}" class="flex flex-wrap gap-2">
-                    @foreach (request()->except('q') as $key => $value)
+                    @foreach (request()->except('q', 'mode') as $key => $value)
                         @if (filled($value) && ! is_array($value))
                             <input type="hidden" name="{{ $key }}" value="{{ $value }}">
                         @endif
@@ -40,18 +37,31 @@
                         type="search"
                         name="q"
                         value="{{ $searchQuery }}"
-                        required
                         autofocus
                         placeholder="Name, phone, plate…"
                         class="h-9 min-w-[12rem] flex-1 rounded-sm border border-slate-300 bg-white px-2 text-sm"
                     >
                     <button type="submit" class="h-9 border border-slate-300 bg-white px-3 text-xs font-bold uppercase tracking-wide text-slate-800 hover:bg-slate-50">Search</button>
+                    <a
+                        href="{{ route('operations.schedule', array_merge(request()->except('q'), ['mode' => 'new'])) }}"
+                        class="inline-flex h-9 items-center border border-slate-800 bg-slate-900 px-3 text-xs font-bold uppercase tracking-wide text-white hover:bg-slate-800"
+                    >
+                        New caller
+                    </a>
                 </form>
                 @if ($searchQuery !== '')
                     @if ($searchCustomers->isEmpty())
                         <div class="space-y-3 border border-slate-200 bg-white p-3">
-                            <p class="text-xs text-slate-600">No match. Add the customer and put them on the schedule — vehicle can wait until they arrive.</p>
-                            <form method="POST" action="{{ route('operations.customers.store') }}" class="grid gap-2 sm:grid-cols-2">
+                            <p class="text-xs text-slate-600">No customer match. Schedule with name and phone, or add a customer record.</p>
+                            <div class="flex flex-wrap gap-2">
+                                <a
+                                    href="{{ route('operations.schedule', array_merge(request()->except('q'), ['mode' => 'new', 'q' => $searchQuery])) }}"
+                                    class="h-9 inline-flex items-center border border-slate-800 bg-slate-900 px-3 text-xs font-bold uppercase tracking-wide text-white hover:bg-slate-800"
+                                >
+                                    Schedule with name &amp; phone
+                                </a>
+                            </div>
+                            <form method="POST" action="{{ route('operations.customers.store') }}" class="grid gap-2 sm:grid-cols-2 border-t border-slate-100 pt-3">
                                 @csrf
                                 <input type="hidden" name="return_to" value="schedule">
                                 @foreach (($scheduleSearchPreserve ?? []) as $key => $value)
@@ -61,7 +71,7 @@
                                 @endforeach
                                 <label class="block sm:col-span-1">
                                     <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">First name</span>
-                                    <input type="text" name="first_name" required value="{{ old('first_name') }}" class="mt-0.5 h-9 w-full rounded-sm border border-slate-300 bg-white px-2 text-sm" autofocus>
+                                    <input type="text" name="first_name" required value="{{ old('first_name') }}" class="mt-0.5 h-9 w-full rounded-sm border border-slate-300 bg-white px-2 text-sm">
                                 </label>
                                 <label class="block sm:col-span-1">
                                     <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Last name</span>
@@ -72,8 +82,7 @@
                                     <input type="tel" name="phone" required value="{{ old('phone', $searchQuery) }}" class="mt-0.5 h-9 w-full rounded-sm border border-slate-300 bg-white px-2 text-sm">
                                 </label>
                                 <div class="sm:col-span-2 flex flex-wrap items-center gap-2">
-                                    <button type="submit" class="h-9 border border-slate-800 bg-slate-900 px-3 text-xs font-bold uppercase tracking-wide text-white hover:bg-slate-800">Add &amp; schedule</button>
-                                    <a href="{{ route('operations.intake.create') }}" class="text-xs font-semibold text-ops-accent-900 hover:underline">Or Check In with a vehicle</a>
+                                    <button type="submit" class="h-9 border border-slate-300 bg-white px-3 text-xs font-bold uppercase tracking-wide text-slate-800 hover:bg-slate-50">Add customer &amp; schedule</button>
                                 </div>
                             </form>
                         </div>
@@ -99,17 +108,45 @@
         @else
             <form method="POST" action="{{ route('operations.appointments.store') }}" class="ops-board-shell space-y-3 p-3">
                 @csrf
-                <input type="hidden" name="customer_id" value="{{ $customer->id }}">
-                <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 border border-slate-200 bg-slate-50 px-3 py-2">
-                    <p class="text-sm font-bold text-slate-950">{{ $customer->name }}</p>
-                    @if (filled($customer->display_phone))
-                        <span class="text-xs font-semibold text-slate-600">{{ $customer->display_phone }}</span>
-                    @endif
-                    <a href="{{ route('operations.customers.show', $customer) }}" class="text-xs font-semibold text-ops-accent-900 hover:underline">Customer hub</a>
-                    @if ($repairOrder ?? null)
-                        <a href="{{ route('operations.repair-orders.show', $repairOrder) }}" class="text-xs font-semibold text-ops-accent-900 hover:underline">RO #{{ $repairOrder->repair_order_id }}</a>
-                    @endif
-                </div>
+                @if ($customer !== null)
+                    <input type="hidden" name="customer_id" value="{{ $customer->id }}">
+                    <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 border border-slate-200 bg-slate-50 px-3 py-2">
+                        <p class="text-sm font-bold text-slate-950">{{ $customer->name }}</p>
+                        @if (filled($customer->display_phone))
+                            <span class="text-xs font-semibold text-slate-600">{{ $customer->display_phone }}</span>
+                        @endif
+                        <a href="{{ route('operations.customers.show', $customer) }}" class="text-xs font-semibold text-ops-accent-900 hover:underline">Customer hub</a>
+                        @if ($repairOrder ?? null)
+                            <a href="{{ route('operations.repair-orders.show', $repairOrder) }}" class="text-xs font-semibold text-ops-accent-900 hover:underline">RO #{{ $repairOrder->repair_order_id }}</a>
+                        @endif
+                    </div>
+                @else
+                    <div class="space-y-3 border border-slate-200 bg-slate-50/60 p-3">
+                        <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Caller</p>
+                        <div class="grid gap-3 sm:grid-cols-2">
+                            <label class="block sm:col-span-2">
+                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Name</span>
+                                <input type="text" name="contact_name" required value="{{ $defaultContactName }}" class="mt-0.5 h-9 w-full rounded-sm border border-slate-300 bg-white px-2 text-sm @error('contact_name') border-rose-400 @enderror" autofocus>
+                            </label>
+                            <label class="block">
+                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Phone</span>
+                                <input type="tel" name="contact_phone" required value="{{ $defaultContactPhone ?? $searchQuery }}" class="mt-0.5 h-9 w-full rounded-sm border border-slate-300 bg-white px-2 text-sm @error('contact_phone') border-rose-400 @enderror">
+                            </label>
+                            <label class="block">
+                                <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Email</span>
+                                <input type="email" name="contact_email" value="{{ $defaultContactEmail }}" class="mt-0.5 h-9 w-full rounded-sm border border-slate-300 bg-white px-2 text-sm">
+                            </label>
+                        </div>
+                        <p class="text-[11px] text-slate-500">No customer record required. Link or create the customer at arrival.</p>
+                        @if (filled($vehicleContextLabel ?? null))
+                            <p class="text-xs text-slate-700"><span class="font-semibold">Vehicle noted:</span> {{ $vehicleContextLabel }}</p>
+                        @endif
+                    </div>
+                @endif
+
+                @if ($defaultLeadId ?? null)
+                    <input type="hidden" name="lead_id" value="{{ $defaultLeadId }}">
+                @endif
 
                 @if ($repairOrder ?? null)
                     <input type="hidden" name="repair_order_id" value="{{ $repairOrder->id }}">
@@ -119,23 +156,28 @@
                     :starts-at="$defaultStartsAt"
                     :ends-at="$defaultEndsAt"
                     :duration-minutes="$defaultDurationMinutes ?? null"
+                    :preferred-period="$preferredPeriod ?? null"
+                    :preferred-date="$preferredDate ?? null"
+                    :request-preference-detail="$requestPreferenceDetail ?? null"
                     :slot-minutes="$slotMinutes"
                 />
 
-                <label class="block">
-                    <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Vehicle</span>
-                    <select name="vehicle_id" class="mt-0.5 h-9 w-full rounded-sm border border-slate-300 bg-white px-2 text-sm">
-                        <option value="" @selected(old('vehicle_id', $selectedVehicleId) === null || old('vehicle_id', $selectedVehicleId) === '')>
-                            Vehicle not set yet
-                        </option>
-                        @foreach ($customer->vehicles as $vehicle)
-                            <option value="{{ $vehicle->id }}" @selected((string) old('vehicle_id', $selectedVehicleId) === (string) $vehicle->id)>
-                                {{ $vehicle->year }} {{ $vehicle->make }} {{ $vehicle->model }}
+                @if ($customer !== null)
+                    <label class="block">
+                        <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Vehicle</span>
+                        <select name="vehicle_id" class="mt-0.5 h-9 w-full rounded-sm border border-slate-300 bg-white px-2 text-sm">
+                            <option value="" @selected(old('vehicle_id', $selectedVehicleId) === null || old('vehicle_id', $selectedVehicleId) === '')>
+                                Vehicle not set yet
                             </option>
-                        @endforeach
-                    </select>
-                    <span class="mt-0.5 block text-[10px] text-slate-500">Optional — leave unset until they arrive if the vehicle isn’t known yet.</span>
-                </label>
+                            @foreach ($customer->vehicles as $vehicle)
+                                <option value="{{ $vehicle->id }}" @selected((string) old('vehicle_id', $selectedVehicleId) === (string) $vehicle->id)>
+                                    {{ $vehicle->year }} {{ $vehicle->make }} {{ $vehicle->model }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <span class="mt-0.5 block text-[10px] text-slate-500">Optional — leave unset until they arrive if the vehicle isn’t known yet.</span>
+                    </label>
+                @endif
 
                 <label class="block">
                     <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Concern</span>

@@ -131,7 +131,7 @@ final class OperationsGlobalSearchProjection
                     'type' => 'appointment',
                     'label' => 'Appointment · '.($appointment->starts_at?->timezone(config('app.display_timezone'))->format('M j g:i A') ?? ''),
                     'detail' => trim(implode(' · ', array_filter([
-                        $appointment->customer?->name,
+                        $appointment->displayName(),
                         $appointment->vehicle?->display_name,
                     ]))),
                     'url' => route('operations.appointments.show', $appointment),

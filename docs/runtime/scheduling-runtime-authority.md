@@ -21,6 +21,18 @@ Not: separate Agenda / Bays / Tech schedulers.
 
 Floor language: *“Yeah, we’ve got room Thursday.”* Morning ops may place work later; lenses only change what you see on that day.
 
+## Request preference vs confirmed appointment
+
+Customer **request** preference (`preferred_period` on Lead metadata): morning / afternoon / flexible (`any`).
+
+Shop **request windows** (`appointment_request_availability.request_windows`): configurable clocks — defaults 09:00–12:00 / 12:00–16:00.
+
+Optional **latest appointment arrival** cutoff: nullable / off by default. Distinct from afternoon request close. When enabled by the shop, preference time lists may filter to that clock; otherwise confirmed starts follow scheduling hours.
+
+Staff confirms an **exact** Appointment: `starts_at` / `ends_at` only. Dayparts do not become Appointment authority. Visit-mode `arrival_type` on schedule cards remains RepairOrderVisitMode (waiting / drop-off).
+
+Canonical copy: `AppointmentExpectationFormatter` — request labels vs confirmed clock separately.
+
 ## Protected sentences
 
 **Appointments reserve soft shop capacity.**

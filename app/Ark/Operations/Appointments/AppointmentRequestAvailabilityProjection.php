@@ -36,7 +36,8 @@ final class AppointmentRequestAvailabilityProjection
             'horizon_days' => $config['horizon_days'],
             'minimum_notice_days' => $config['minimum_notice_days'],
             'dates' => $dates,
-            'periods' => AppointmentRequestAvailability::periodOptions(),
+            'periods' => AppointmentRequestAvailability::enabledPeriodOptions($settings),
+            'request_windows' => $config['request_windows'] ?? ScheduleRequestWindows::defaults(),
             'empty_message' => $dates === []
                 ? 'We’re not accepting online appointment requests right now. Call or text us and we’ll help you find a time.'
                 : null,

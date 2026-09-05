@@ -68,6 +68,8 @@ function appointmentForSms(User $advisor, Customer $customer, Carbon $startsLoca
 }
 
 test('scheduling an appointment flashes the customer text prompt', function () {
+    bindFakeOutboundSms();
+
     $advisor = User::factory()->create()->assignRole(ArkRole::Advisor->value);
     $customer = appointmentSmsCustomer();
     $bay = Workstation::query()->create([

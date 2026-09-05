@@ -7,6 +7,9 @@ use App\Ark\Operations\Settings\ShopSettings;
 /**
  * Configuration: when the shop accepts public appointment *requests* (Lead intake).
  * Independent of Business Hours (telephony) and staff Appointment soft-capacity windows.
+ *
+ * Request preferences (preferred_period) guide staff booking.
+ * Confirmed Appointments still require an exact starts_at.
  */
 final class AppointmentRequestAvailability
 {
@@ -34,7 +37,13 @@ final class AppointmentRequestAvailability
      * @return array{
      *     weekly: array<string, array{enabled: bool}>,
      *     horizon_days: int,
-     *     minimum_notice_days: int
+     *     minimum_notice_days: int,
+     *     request_windows: array{
+     *         morning: array{enabled: bool, open: string, close: string},
+     *         afternoon: array{enabled: bool, open: string, close: string},
+     *         flexible_enabled: bool,
+     *         latest_appointment_arrival: string|null
+     *     }
      * }
      */
     public static function defaultsFromSchedulingHours(?array $schedulingHours = null): array
@@ -52,6 +61,7 @@ final class AppointmentRequestAvailability
             'weekly' => $weekly,
             'horizon_days' => 14,
             'minimum_notice_days' => 0,
+            'request_windows' => ScheduleRequestWindows::defaults(),
         ];
     }
 
@@ -60,7 +70,13 @@ final class AppointmentRequestAvailability
      * @return array{
      *     weekly: array<string, array{enabled: bool}>,
      *     horizon_days: int,
-     *     minimum_notice_days: int
+     *     minimum_notice_days: int,
+     *     request_windows: array{
+     *         morning: array{enabled: bool, open: string, close: string},
+     *         afternoon: array{enabled: bool, open: string, close: string},
+     *         flexible_enabled: bool,
+     *         latest_appointment_arrival: string|null
+     *     }
      * }
      */
     public static function normalize(?array $config, ?array $schedulingHoursFallback = null): array
@@ -91,6 +107,7 @@ final class AppointmentRequestAvailability
             'weekly' => $weekly,
             'horizon_days' => $horizon,
             'minimum_notice_days' => $notice,
+            'request_windows' => ScheduleRequestWindows::normalize($config),
         ];
     }
 
@@ -98,7 +115,13 @@ final class AppointmentRequestAvailability
      * @return array{
      *     weekly: array<string, array{enabled: bool}>,
      *     horizon_days: int,
-     *     minimum_notice_days: int
+     *     minimum_notice_days: int,
+     *     request_windows: array{
+     *         morning: array{enabled: bool, open: string, close: string},
+     *         afternoon: array{enabled: bool, open: string, close: string},
+     *         flexible_enabled: bool,
+     *         latest_appointment_arrival: string|null
+     *     }
      * }
      */
     public static function forShop(?ShopSettings $settings = null): array
@@ -112,6 +135,8 @@ final class AppointmentRequestAvailability
     }
 
     /**
+     * All known period values (including disabled) — for validating stored Lead metadata.
+     *
      * @return list<array{value: string, label: string}>
      */
     public static function periodOptions(): array
@@ -119,8 +144,31 @@ final class AppointmentRequestAvailability
         return [
             ['value' => self::PERIOD_MORNING, 'label' => 'Morning'],
             ['value' => self::PERIOD_AFTERNOON, 'label' => 'Afternoon'],
-            ['value' => self::PERIOD_ANY, 'label' => 'No preference'],
+            ['value' => self::PERIOD_ANY, 'label' => 'Flexible'],
         ];
+    }
+
+    /**
+     * Periods currently offered for customer requests.
+     *
+     * @return list<array{value: string, label: string}>
+     */
+    public static function enabledPeriodOptions(?ShopSettings $settings = null): array
+    {
+        $windows = ScheduleRequestWindows::forShop($settings);
+        $options = [];
+
+        if ($windows['morning']['enabled']) {
+            $options[] = ['value' => self::PERIOD_MORNING, 'label' => 'Morning'];
+        }
+        if ($windows['afternoon']['enabled']) {
+            $options[] = ['value' => self::PERIOD_AFTERNOON, 'label' => 'Afternoon'];
+        }
+        if ($windows['flexible_enabled']) {
+            $options[] = ['value' => self::PERIOD_ANY, 'label' => 'Flexible'];
+        }
+
+        return $options;
     }
 
     public static function periodLabel(string $period): string
@@ -131,7 +179,7 @@ final class AppointmentRequestAvailability
             }
         }
 
-        return 'No preference';
+        return 'Flexible';
     }
 
     /**
