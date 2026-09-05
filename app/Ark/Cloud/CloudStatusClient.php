@@ -3,6 +3,7 @@
 namespace App\Ark\Cloud;
 
 use App\Ark\Install\InstallationIdentity;
+use App\Ark\Operations\Settings\ShopSettings;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -12,6 +13,48 @@ use Illuminate\Support\Str;
  */
 final class CloudStatusClient
 {
+    /**
+     * @return array{
+     *     ok: bool,
+     *     services: list<array{key: string, label: string, status: string, status_label: string, detail: ?string}>,
+     *     from_email: ?string,
+     *     reply_to: ?string,
+     *     shop_public_id: ?string,
+     * }|null
+     */
+    public function fetchAndPersistLocalMailProjection(): ?array
+    {
+        $status = $this->fetch();
+        if ($status === null) {
+            return null;
+        }
+
+        $this->persistLocalFromAddress($status);
+
+        return $status;
+    }
+
+    /**
+     * @param  array{from_email?: ?string, reply_to?: ?string}  $status
+     */
+    public function persistLocalFromAddress(array $status): void
+    {
+        $from = $status['from_email'] ?? null;
+        if (! is_string($from) || ! filled(trim($from))) {
+            return;
+        }
+
+        $normalized = strtolower(trim($from));
+        $settings = ShopSettings::current();
+        if ($settings->ark_mail_from_email === $normalized) {
+            return;
+        }
+
+        $settings->persistTrusted([
+            'ark_mail_from_email' => $normalized,
+        ]);
+    }
+
     /**
      * @return array{
      *     ok: bool,

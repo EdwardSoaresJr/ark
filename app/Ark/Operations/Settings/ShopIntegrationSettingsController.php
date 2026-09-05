@@ -2,7 +2,9 @@
 
 namespace App\Ark\Operations\Settings;
 
+use App\Ark\Cloud\CloudConnection;
 use App\Ark\Mail\ArkMailActivationClient;
+use App\Ark\Mail\ArkMailIdentityClient;
 use App\Ark\Operations\Documents\EstimateDocumentService;
 use App\Ark\Operations\Financial\EstimateTotalsCalculator;
 use App\Ark\Operations\Settings\Concerns\InteractsWithShopSettingsPersistence;
@@ -47,9 +49,18 @@ public function updatePayments(Request $request): RedirectResponse
             'postmark_reply_to_name' => $this->nullableTrimmedString($data['postmark_reply_to_name'] ?? null),
         ]);
 
-        return redirect()
+        $redirect = redirect()
             ->route('operations.settings.shop.edit', ['section' => 'customer-messaging'])
             ->with('status', 'Email settings saved.');
+
+        if (CloudConnection::current()->isConnected()) {
+            $synced = app(ArkMailIdentityClient::class)->syncShopReplyTo();
+            if (! $synced) {
+                $redirect->with('warning', 'Reply-To was saved here, but ARK Cloud could not be updated right now. Try again from Settings → ARK Cloud after Cloud is reachable.');
+            }
+        }
+
+        return $redirect;
     }
 
     /** @deprecated Use ShopCloudSettingsController — redirects preserved for old links. */

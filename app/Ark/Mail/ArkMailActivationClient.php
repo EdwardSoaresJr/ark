@@ -102,6 +102,9 @@ final class ArkMailActivationClient
         // Essential Delivery is installation infrastructure after explicit Cloud connect — not at /setup.
         app(\App\Ark\Cloud\EssentialDeliveryClient::class)->registerAtInstall($base);
 
+        app(\App\Ark\Cloud\CloudStatusClient::class)->fetchAndPersistLocalMailProjection();
+        app(ArkMailIdentityClient::class)->syncShopReplyTo();
+
         Log::info('ark_cloud.paired', [
             'shop_public_id' => $shopPublicId,
             'installation_uuid' => $installationUuid,

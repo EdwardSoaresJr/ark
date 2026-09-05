@@ -109,7 +109,7 @@ final class ArkCloudServiceCatalog
             return $this->offlineCatalog('requires_cloud', 'Requires ARK Cloud', null);
         }
 
-        $status = $this->statusClient->fetch();
+        $status = $this->statusClient->fetchAndPersistLocalMailProjection();
         if ($status === null) {
             return [[
                 'key' => 'connect',

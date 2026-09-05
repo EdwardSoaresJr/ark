@@ -4,6 +4,7 @@ use App\Ark\Operations\Settings\ShopSettings;
 use App\Ark\Runtime\Authorization\ArkRole;
 use App\Models\User;
 use Database\Seeders\ArkAuthorizationSeeder;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 
 test('customer messaging settings save message actions without transport credential fields', function () {
@@ -34,6 +35,37 @@ test('customer messaging settings save message actions without transport credent
         ->and($settings->message_actions['tow_company'] ?? null)->toBe('Pinkys Towing')
         ->and(Schema::hasColumn('shop_settings', 'postmark_token'))->toBeFalse()
         ->and(Schema::hasColumn('shop_settings', 'email_provider'))->toBeFalse();
+});
+
+test('customer messaging reply-to syncs to cloud when connected', function () {
+    $this->seed(ArkAuthorizationSeeder::class);
+    $admin = User::factory()->create()->assignRole(ArkRole::Admin->value);
+
+    ShopSettings::current()->persistTrusted([
+        'learn_training_gate_enabled' => false,
+        'shop_name' => 'Example Shop',
+        'cloud_status' => 'connected',
+        'cloud_base_url' => 'https://cloud.example.test',
+        'cloud_credential' => 'cloud-install-secret',
+    ]);
+
+    Http::fake([
+        'cloud.example.test/api/v1/services/mail/identity' => Http::response(['ok' => true], 200),
+    ]);
+
+    $this->actingAs($admin)
+        ->patch(route('operations.settings.shop.customer-messaging.update'), [
+            'postmark_reply_to' => 'service@example.com',
+            'postmark_reply_to_name' => 'Example Shop',
+        ])
+        ->assertRedirect(route('operations.settings.shop.edit', [
+            'section' => 'customer-messaging',
+        ]))
+        ->assertSessionHas('status')
+        ->assertSessionMissing('warning');
+
+    Http::assertSent(fn ($request) => str_ends_with($request->url(), '/api/v1/services/mail/identity')
+        && ($request->data()['reply_to_email'] ?? null) === 'service@example.com');
 });
 
 test('integration settings pages hide cloud transport credential fields', function () {

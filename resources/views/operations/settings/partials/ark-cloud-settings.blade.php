@@ -111,6 +111,18 @@
                 </details>
             @else
                 @php($starter = $catalog->starterSummary())
+                @php($mailService = collect($services)->firstWhere('key', 'mail'))
+                @if (is_array($mailService) && ($mailService['status'] ?? null) === 'needs_setup')
+                    <div class="mt-3 rounded-sm border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-950">
+                        <p class="font-semibold">ARK Mail needs setup</p>
+                        <p class="mt-1">
+                            Set a Reply-To address under Customer messaging so Cloud can finish Mail identity.
+                            @if (filled($settings->ark_mail_from_email))
+                                From address on this Box: <span class="font-mono">{{ $settings->ark_mail_from_email }}</span>.
+                            @endif
+                        </p>
+                    </div>
+                @endif
                 @if ($starter)
                     <div class="mt-3 rounded-sm border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-950">
                         <p class="font-semibold">ARK Cloud Starter · Free</p>

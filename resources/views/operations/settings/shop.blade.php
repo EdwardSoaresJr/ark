@@ -166,6 +166,9 @@
                 @if (session('status'))
                     <p class="border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-900">{{ session('status') }}</p>
                 @endif
+                @if (session('warning'))
+                    <p class="border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-950">{{ session('warning') }}</p>
+                @endif
             </div>
             @if ($errors->any())
                 <div class="mt-2 border border-rose-200 bg-rose-50 px-3 py-2">

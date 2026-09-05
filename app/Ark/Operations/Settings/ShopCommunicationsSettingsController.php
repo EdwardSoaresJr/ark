@@ -2,6 +2,8 @@
 
 namespace App\Ark\Operations\Settings;
 
+use App\Ark\Cloud\CloudConnection;
+use App\Ark\Mail\ArkMailIdentityClient;
 use App\Ark\Operations\Telephony\TelephonyCallFlowSettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -84,9 +86,18 @@ class ShopCommunicationsSettingsController
             ],
         ]);
 
-        return redirect()
+        $redirect = redirect()
             ->route('operations.settings.shop.edit', ['section' => 'customer-messaging'])
             ->with('status', 'Customer messaging settings saved.');
+
+        if (CloudConnection::current()->isConnected()) {
+            $synced = app(ArkMailIdentityClient::class)->syncShopReplyTo();
+            if (! $synced) {
+                $redirect->with('warning', 'Reply-To was saved here, but ARK Cloud could not be updated right now. Try again from Settings → ARK Cloud after Cloud is reachable.');
+            }
+        }
+
+        return $redirect;
     }
 
     private function nullableTrimmedString(?string $value): ?string

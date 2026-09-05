@@ -47,6 +47,8 @@ test('connected box renders Cloud service projection not local leftovers', funct
     Http::fake([
         'cloud.example.test/api/v1/status' => Http::response([
             'ok' => true,
+            'from_email' => 'shop@mail.example.test',
+            'reply_to' => 'service@shop.example.test',
             'services' => [
                 ['key' => 'connect', 'label' => 'ARK Connect', 'status' => 'active', 'status_label' => 'Active', 'detail' => null],
                 ['key' => 'mail', 'label' => 'ARK Mail', 'status' => 'needs_setup', 'status_label' => 'Needs setup', 'detail' => 'Configure Reply-To in ARK Cloud'],
@@ -64,7 +66,9 @@ test('connected box renders Cloud service projection not local leftovers', funct
         ->and($services->firstWhere('key', 'mail')['status'])->toBe('needs_setup')
         ->and($services->firstWhere('key', 'mail')['status_label'])->toBe('Needs setup')
         ->and($services->firstWhere('key', 'sms')['status'])->toBe('not_enabled')
-        ->and($services->firstWhere('key', 'backup')['status'])->toBe('coming_soon');
+        ->and($services->firstWhere('key', 'backup')['status'])->toBe('coming_soon')
+        ->and(ShopSettings::current()->fresh()->ark_mail_from_email)->toBe('shop@mail.example.test')
+        ->and(ShopSettings::current()->fresh()->postmark_reply_to)->not->toBe('service@shop.example.test');
 
     Http::assertSentCount(1);
 });
@@ -95,8 +99,9 @@ test('manage url points at external Cloud portal', function () {
         'cloud_status' => 'connected',
         'cloud_base_url' => 'https://cloud.arksms.com',
         'cloud_credential' => 'secret',
+        'cloud_shop_public_id' => null,
     ]);
 
     expect(ArkCloudServiceCatalog::forCurrentShop()->manageUrl())
-        ->toBe('https://cloud.arksms.com/portal');
+        ->toBe('https://cloud.arksms.com/go?to=shop');
 });

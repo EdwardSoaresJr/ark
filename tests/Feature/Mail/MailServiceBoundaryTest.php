@@ -36,12 +36,24 @@ function boundaryMailable(): \Illuminate\Mail\Mailable
 it('keeps estimate and invoice delivery on the OutboundTransactionalMail boundary', function () {
     $estimate = new ReflectionClass(EstimateDocumentEmailDelivery::class);
     $invoice = new ReflectionClass(InvoiceDocumentEmailDelivery::class);
+    $payment = new ReflectionClass(\App\Ark\Operations\Messaging\SendPaymentLinkEmailDelivery::class);
+    $deposit = new ReflectionClass(\App\Ark\Operations\Messaging\SendDepositRequestEmailDelivery::class);
+    $review = new ReflectionClass(\App\Ark\Operations\Messaging\SendReviewRequestEmailDelivery::class);
 
     expect($estimate->hasProperty('outboundMail'))->toBeTrue()
         ->and($invoice->hasProperty('outboundMail'))->toBeTrue()
+        ->and($payment->hasProperty('outboundMail'))->toBeTrue()
+        ->and($deposit->hasProperty('outboundMail'))->toBeTrue()
+        ->and($review->hasProperty('outboundMail'))->toBeTrue()
         ->and($estimate->getProperty('outboundMail')->getType()?->getName())
         ->toBe(OutboundTransactionalMail::class)
         ->and($invoice->getProperty('outboundMail')->getType()?->getName())
+        ->toBe(OutboundTransactionalMail::class)
+        ->and($payment->getProperty('outboundMail')->getType()?->getName())
+        ->toBe(OutboundTransactionalMail::class)
+        ->and($deposit->getProperty('outboundMail')->getType()?->getName())
+        ->toBe(OutboundTransactionalMail::class)
+        ->and($review->getProperty('outboundMail')->getType()?->getName())
         ->toBe(OutboundTransactionalMail::class);
 });
 
