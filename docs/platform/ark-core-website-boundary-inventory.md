@@ -1,6 +1,8 @@
 # Core ↔ Website boundary inventory (2026-09-05)
 
-Classification for public Core extraction. Companion: [ark-core-website-boundary.md](./ark-core-website-boundary.md).
+**Baseline:** SEALED PASS at `7c24ce2`. Companion: [ark-core-website-boundary.md](./ark-core-website-boundary.md).
+
+Classification for public Core extraction.
 
 ## KEEP
 

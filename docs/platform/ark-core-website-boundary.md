@@ -1,7 +1,9 @@
 # ARK Core ↔ Website boundary
 
-**Status:** Binding for public Core  
+**Status:** SEALED — PASS baseline `7c24ce2` (2026-09-05)  
 **Doctrine:** We extract Website from Core because **ARK Website is becoming its own automotive CMS product** — not because website capability is abandoned.
+
+**Sealed product boundary:** ARK Website owns the form and customer-facing experience. ARK Core owns the resulting Lead.
 
 A fact appearing on a website does **not** make it Website-owned. `shop_hours` can remain Core authority (operations need it). A future ARK Website **consumes** it. Homepage section titles, layout, styling, and SEO copy belong to Website.
 
