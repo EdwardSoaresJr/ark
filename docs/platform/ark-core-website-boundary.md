@@ -1,27 +1,45 @@
 # ARK Core ↔ Website boundary
 
+**Status:** Binding for public Core  
+**Doctrine:** We extract Website from Core because **ARK Website is becoming its own automotive CMS product** — not because website capability is abandoned.
+
+A fact appearing on a website does **not** make it Website-owned. `shop_hours` can remain Core authority (operations need it). A future ARK Website **consumes** it. Homepage section titles, layout, styling, and SEO copy belong to Website.
+
 Core is the shop operating system: repair orders, customers, communications, portal, intake, leads, installer, reporting, and shop identity.
 
-Marketing website, SEO, Growth marketing tools, and website admin are **not** Core. They were extracted from this repository.
+Marketing website, SEO, Growth marketing tools, and website admin are **not** Core.
 
-## What stays in Core
+## What stays in Core (KEEP)
 
-- Shop identity (`ShopSettings`: name, address, phone, hours, logo)
+- Shop identity (`ShopSettings`: name, address, phone, email, hours, timezone, logo, `website` URL for documents)
 - Google review destination (`shop_settings.google_reviews_url`) for post-repair review requests — Core messaging, not Website SEO
 - Customer portal and tokenized estimate / inspection / pay links
-- Leads as operational authority (advisor intake, `LeadSource::Website` for historical/source labeling)
+- Leads as operational authority (advisor intake, `LeadSource::Website` for historical/source labeling, `LeadRecorder`)
 - Website-lead interrupt presenters for uncontacted leads already in Core
+- Ingress hygiene / spam observation on lead authority (no public marketing form required)
 - `PUBLIC_DOMAIN` / `surfaces.public` as an optional **host routing** seam for portal co-location — not a marketing CMS
-- Legacy `public_surface_settings` / Growth schema columns may remain for install compatibility; they are not product authority
+- Appointment **availability** configuration (when the shop can take requests) — presentation of booking UI is Website
 
-## What left Core
+## What left Core (REMOVE / left)
 
 - Public marketing pages (home, book, common problems, financing, RepairPal, SEO assets)
 - Growth opportunity / attribution / journey explorer product surfaces
 - Website admin / performance settings UI
+- `public_surface_settings`, `growth_integrations`, `growth_google_service_account`
+- Growth CMS / analytics tables (`growth_*`, `public_surface_events`)
+- Featured-media marketing gallery JS and related post-deploy artisan
+- Broken `public.*` marketing route call sites in Core UI/tests
+
+## Historical columns
+
+`growth_session_id` is **dropped** from `leads`, `conversations`, and `repair_orders` by the Website/Growth schema drop migration. Do not reintroduce Growth attribution into Core.
 
 ## Future ARK Website
 
-A future ARK Website product may **consume** Core shop facts (identity, hours, phone) for publication. It does not become shop authority.
+A future ARK Website product may **consume** Core shop facts (identity, hours, phone, policies) for publication. It does not become shop authority.
+
+Useful concepts captured for migration: [ark-website-product-concepts-from-core.md](./ark-website-product-concepts-from-core.md)
+
+Inventory: [ark-core-website-boundary-inventory.md](./ark-core-website-boundary-inventory.md)
 
 ARK Website is conceptually independent of Connect: a shop may publish a site and receive email notifications without Connect; Connect enables direct Core workflow when that product exists. This document records the boundary only — no Website or Connect implementation claim.

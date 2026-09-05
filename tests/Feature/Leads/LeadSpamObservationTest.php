@@ -1,30 +1,36 @@
 <?php
 
 use App\Ark\Operations\Leads\Lead;
+use App\Ark\Operations\Leads\LeadIngressContext;
+use App\Ark\Operations\Leads\LeadIngressHygiene;
 use App\Ark\Operations\Leads\LeadPressure;
+use App\Ark\Operations\Leads\LeadRecorder;
 use App\Ark\Operations\Leads\LeadSource;
 use App\Ark\Operations\Leads\LeadState;
 use App\Ark\Runtime\Authorization\ArkRole;
 use App\Models\User;
 use Database\Seeders\ArkAuthorizationSeeder;
+use Illuminate\Support\Carbon;
 
 beforeEach(function (): void {
     $this->seed(ArkAuthorizationSeeder::class);
 });
 
 test('website lead captures ingress observation fields', function (): void {
-    $this->withHeaders([
-        'User-Agent' => 'Mozilla/5.0 TestBrowser',
-        'Referer' => 'https://google.com/search?q=auto+repair',
-    ])->post(route('public.leads.store'), [
-        'concern' => 'Brakes squeal when stopping.',
-        'phone' => '719-555-0142',
-        'first_name' => 'Alex',
-        'last_name' => 'Morgan',
-        'form_rendered_at' => now()->subSeconds(10)->timestamp,
-    ])->assertRedirect(route('public.leads.thanks'));
+    $ingress = new LeadIngressContext(
+        ip: '203.0.113.10',
+        userAgent: 'Mozilla/5.0 TestBrowser',
+        referrer: 'https://google.com/search?q=auto+repair',
+        formRenderedAt: now()->subSeconds(10),
+        submittedAt: now(),
+    );
 
-    $lead = Lead::query()->sole();
+    $lead = app(LeadRecorder::class)->recordWebsiteSubmission([
+        'concern' => 'Brakes squeal when stopping.',
+        'contact_phone' => '719-555-0142',
+        'contact_name' => 'Alex Morgan',
+        'source' => LeadSource::Website,
+    ], ingress: $ingress);
 
     expect($lead->state)->toBe(LeadState::Received)
         ->and($lead->ingress_user_agent)->toContain('TestBrowser')
@@ -34,15 +40,23 @@ test('website lead captures ingress observation fields', function (): void {
 });
 
 test('too fast submission auto flags spam without conversation', function (): void {
-    $this->post(route('public.leads.store'), [
-        'concern' => 'Casino bonus now!!!',
-        'phone' => '719-555-0001',
-        'first_name' => 'Bot',
-        'last_name' => 'Spam',
-        'form_rendered_at' => now()->timestamp,
-    ])->assertRedirect(route('public.leads.thanks'));
+    $submittedAt = Carbon::now();
+    $ingress = new LeadIngressContext(
+        ip: '203.0.113.11',
+        userAgent: 'Bot/1.0',
+        referrer: null,
+        formRenderedAt: $submittedAt->copy(),
+        submittedAt: $submittedAt,
+    );
+    $hygiene = app(LeadIngressHygiene::class);
+    $signals = $hygiene->signals($ingress);
 
-    $lead = Lead::query()->sole();
+    $lead = app(LeadRecorder::class)->recordWebsiteSubmission([
+        'concern' => 'Casino bonus now!!!',
+        'contact_phone' => '719-555-0001',
+        'contact_name' => 'Bot Spam',
+        'source' => LeadSource::Website,
+    ], ingress: $ingress, forcedState: $hygiene->autoSpamState($signals), spamSignals: $signals);
 
     expect($lead->state)->toBe(LeadState::Spam)
         ->and($lead->spam_signals)->toContain('too_fast')
@@ -86,4 +100,3 @@ test('advisor can mark lead spam manually', function (): void {
 
     expect($lead->fresh()->state)->toBe(LeadState::Spam);
 });
-

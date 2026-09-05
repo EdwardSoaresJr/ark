@@ -51,23 +51,12 @@
                 @if ($bookContinuation)
                     <p class="text-sm font-semibold text-slate-900">Prefer text?</p>
                     <p class="mt-2 text-sm leading-relaxed text-slate-600">
-                        <a
-                            href="{{ route('public.book') }}"
-                            class="font-semibold text-[#0099cc] no-underline hover:text-[#0088b8]"
-                        >
-                            Verify with your mobile number instead
-                        </a>
+                        Enter the mobile number {{ $shopName }} has for you above — we’ll text a 6-digit code.
                     </p>
                 @else
                     <p class="text-sm font-semibold text-slate-900">Don’t have a code yet?</p>
                     <p class="mt-2 text-sm leading-relaxed text-slate-600">
-                        <a
-                            href="{{ \App\Ark\Customer\CustomerSurfaceUrls::publicHome() }}"
-                            class="font-semibold text-[#0099cc] no-underline hover:text-[#0088b8]"
-                        >
-                            Contact the shop
-                        </a>
-                        if you need help finding the right email or number.
+                        Call {{ $shopName }} if you need help finding the right email or number on file.
                     </p>
                 @endif
             </div>

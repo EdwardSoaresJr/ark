@@ -21,7 +21,7 @@
                     @endif
                 </p>
                 <p class="mt-0.5 text-xs text-slate-500">
-                    Controls what <span class="font-semibold">/book</span> offers. Does not change Business Hours or staff scheduling.
+                    Controls appointment request availability. Does not change Business Hours or staff scheduling.
                     @if ($exception)
                         · Override: {{ $exception->mode }}@if (filled($exception->reason)) ({{ $exception->reason }})@endif
                     @elseif (! $weeklyEnabled)

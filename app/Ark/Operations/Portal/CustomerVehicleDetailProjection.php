@@ -45,7 +45,7 @@ final class CustomerVehicleDetailProjection
      *     last_visit: ?array{repair_order_id: int, summary: string, occurred_at_label: string, inspection_url: ?string},
      *     recent_visits: list<array{repair_order_id: int, summary: string, occurred_at_label: string, inspection_url: ?string}>,
      *     documents: array{total_count: int, items: list<array{id: int, label: string, type_label: string, occurred_at_label: string, has_pdf: bool, view_url: string, download_url: string, review_url: ?string, review_label: ?string}>},
-     *     shop: array{phone_display: string, phone_tel: string, sms_href: string, personality_line: string, local_tagline: string, shop_photos: list<array{url: string, alt: string}>},
+     *     shop: array{phone_display: string, phone_tel: string, sms_href: string},
      * }
      */
     public function forVehicle(Vehicle $vehicle, Customer $viewer): array
@@ -101,9 +101,6 @@ final class CustomerVehicleDetailProjection
                 'phone_display' => $phoneDisplay,
                 'phone_tel' => $phoneTel,
                 'sms_href' => 'sms:'.$phoneTel,
-                'personality_line' => '',
-                'local_tagline' => '',
-                'shop_photos' => [],
             ],
         ];
     }

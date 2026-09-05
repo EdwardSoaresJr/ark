@@ -124,7 +124,6 @@
                     'sms_href' => $home['sms_href'],
                     'business_hours_label' => $home['business_hours_label'],
                     'help_links' => $home['help_links'],
-                    'shop_photos' => $home['shop_photos'],
                 ],
             ])
         </x-slot:rail>

@@ -209,7 +209,7 @@
         <div>
             <p class="text-sm font-black text-slate-950">Appointment Request Availability</p>
             <p class="mt-1 text-xs leading-5 text-slate-500">
-                Controls which days the public <span class="font-semibold">/book</span> form may offer for appointment requests.
+                Controls which days appointment requests may offer. Public booking presentation belongs to ARK Website.
                 Independent of Business Hours and staff Scheduling hours above.
             </p>
         </div>

@@ -12,11 +12,6 @@ final class CustomerSurfaceUrls
         return self::portalAccess();
     }
 
-    public static function commonProblems(): string
-    {
-        return self::portalHome();
-    }
-
     public static function portalAccess(): string
     {
         if (SurfaceRouting::enabled()) {

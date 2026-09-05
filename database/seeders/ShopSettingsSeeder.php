@@ -128,7 +128,6 @@ class ShopSettingsSeeder extends Seeder
             'default_recommendation_intent' => $settings->default_recommendation_intent ?: 'maintenance',
             'default_estimate_state' => $settings->default_estimate_state ?: RepairOrderStatus::Estimate->value,
             'shop_excellence_targets' => $settings->shop_excellence_targets ?: ShopExcellenceTargets::DEFAULTS,
-            'public_surface_settings' => $settings->public_surface_settings ?: [],
             'appointments_enabled' => true,
             'operational_profile' => $settings->operational_profile ?: OperationalProfile::RepairShop->value,
         ])->save();

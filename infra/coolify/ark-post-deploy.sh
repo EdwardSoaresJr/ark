@@ -43,11 +43,6 @@ php artisan config:clear --no-interaction >/dev/null 2>&1 || true
 php artisan route:clear --no-interaction >/dev/null 2>&1 || true
 php artisan view:clear --no-interaction >/dev/null 2>&1 || true
 
-echo "[ark-post-deploy] optimizing common-problem featured media..."
-php artisan ark:public-surface:optimize-common-problem-media --only-missing --no-interaction || {
-    echo "[ark-post-deploy] Common-problem media optimization skipped or failed (non-fatal)." >&2
-}
-
 if [[ "${BOOKSTACK_CUTOVER:-false}" == "true" ]] \
     && [[ -n "${BOOKSTACK_API_TOKEN_ID:-}" ]] \
     && [[ -n "${BOOKSTACK_API_TOKEN_SECRET:-}" ]]; then

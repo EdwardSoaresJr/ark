@@ -198,17 +198,11 @@
                     'business_hours_label' => null,
                     'help_links' => [
                         [
-                            'label' => 'Common car problems',
-                            'href' => \App\Ark\Customer\CustomerSurfaceUrls::commonProblems(),
-                            'description' => 'Plain guides for common issues while you wait.',
-                        ],
-                        [
                             'label' => 'Text us photos or video',
                             'href' => $shop['sms_href'] ?? '',
                             'description' => 'A picture of the dash, leak, or noise helps us prepare.',
                         ],
                     ],
-                    'shop_photos' => $shop['shop_photos'] ?? [],
                 ],
             ])
         </x-slot:rail>

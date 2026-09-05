@@ -17,7 +17,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
 #[Fillable([
-    'growth_session_id',
     'uuid',
     'source',
     'state',

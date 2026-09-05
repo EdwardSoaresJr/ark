@@ -12,6 +12,7 @@ use App\Ark\Operations\Conversations\ConversationWaitingOn;
 use App\Ark\Operations\Conversations\ConversationResolver;
 use App\Ark\Operations\Customers\Customer;
 use App\Ark\Operations\Leads\Lead;
+use App\Ark\Operations\Leads\LeadRecorder;
 use App\Ark\Operations\Leads\LeadSource;
 use App\Ark\Operations\Leads\LeadState;
 use App\Ark\Operations\Recommendations\RecommendationResolution;
@@ -48,18 +49,34 @@ function commsWorkspaceAdvisor(): User
     return actingAsLearnCurrentAdvisor();
 }
 
+/**
+ * @param  array{concern: string, phone: string, first_name?: string, last_name?: string, email?: string}  $data
+ */
+function recordWebsiteLeadForWorkspace(array $data): Lead
+{
+    $name = trim(implode(' ', array_filter([
+        $data['first_name'] ?? null,
+        $data['last_name'] ?? null,
+    ])));
+
+    return app(LeadRecorder::class)->recordWebsiteSubmission([
+        'concern' => $data['concern'],
+        'contact_phone' => $data['phone'],
+        'contact_name' => $name !== '' ? $name : null,
+        'contact_email' => $data['email'] ?? null,
+        'source' => LeadSource::Website,
+    ]);
+}
+
 test('website lead appears in needs attention with turn label', function (): void {
     $advisor = commsWorkspaceAdvisor();
 
-    $this->post(route('public.leads.store'), [
+    $lead = recordWebsiteLeadForWorkspace([
         'concern' => 'Brakes squeal when stopping.',
         'phone' => '719-555-0142',
         'first_name' => 'Jason',
         'last_name' => 'Smith',
-        'source' => LeadSource::Website->value,
-    ])->assertRedirect();
-
-    $lead = Lead::query()->firstOrFail();
+    ]);
     $conversation = Conversation::query()->findOrFail($lead->conversation_id);
 
     expect($conversation->waiting_on)->toBe(ConversationWaitingOn::Shop);
@@ -77,16 +94,13 @@ test('website lead appears in needs attention with turn label', function (): voi
 test('new ro from unmatched website lead carries lead_id so intake prefills name', function (): void {
     $advisor = commsWorkspaceAdvisor();
 
-    $this->post(route('public.leads.store'), [
+    $lead = recordWebsiteLeadForWorkspace([
         'concern' => 'Need front and rear brakes.',
         'phone' => '719-555-0166',
         'email' => 'kyle@example.test',
         'first_name' => 'Kyle',
         'last_name' => 'Kight',
-        'source' => LeadSource::Website->value,
-    ])->assertRedirect();
-
-    $lead = Lead::query()->firstOrFail();
+    ]);
     $conversation = Conversation::query()->findOrFail($lead->conversation_id);
 
     $identity = app(\App\Ark\Operations\Communications\CommunicationsWorkspaceIdentityProjection::class)
@@ -117,15 +131,12 @@ test('new ro from unmatched website lead carries lead_id so intake prefills name
 test('advisor reply moves conversation to waiting on customer and records first contact', function (): void {
     $advisor = commsWorkspaceAdvisor();
 
-    $this->post(route('public.leads.store'), [
+    $lead = recordWebsiteLeadForWorkspace([
         'concern' => 'Check engine light is on.',
         'phone' => '719-555-0199',
         'first_name' => 'Maria',
         'last_name' => 'Lopez',
-        'source' => LeadSource::Website->value,
-    ])->assertRedirect();
-
-    $lead = Lead::query()->firstOrFail();
+    ]);
     $conversation = Conversation::query()->findOrFail($lead->conversation_id);
 
     bindFakeOutboundSms('SMleadreply001');
@@ -152,15 +163,12 @@ test('advisor reply moves conversation to waiting on customer and records first 
 test('customer inbound sms returns conversation to needs attention', function (): void {
     $advisor = commsWorkspaceAdvisor();
 
-    $this->post(route('public.leads.store'), [
+    $lead = recordWebsiteLeadForWorkspace([
         'concern' => 'Need an oil change.',
         'phone' => '719-555-0200',
         'first_name' => 'Sam',
         'last_name' => 'Rivera',
-        'source' => LeadSource::Website->value,
-    ])->assertRedirect();
-
-    $lead = Lead::query()->firstOrFail();
+    ]);
     $conversation = Conversation::query()->findOrFail($lead->conversation_id);
 
     bindFakeOutboundSms('SMleadreply002');
@@ -189,15 +197,12 @@ test('customer inbound sms returns conversation to needs attention', function ()
 test('lead selection redirects to conversation thread', function (): void {
     $advisor = commsWorkspaceAdvisor();
 
-    $this->post(route('public.leads.store'), [
+    $lead = recordWebsiteLeadForWorkspace([
         'concern' => 'AC not cold.',
         'phone' => '719-555-0301',
         'first_name' => 'Taylor',
         'last_name' => 'Reed',
-        'source' => LeadSource::Website->value,
-    ])->assertRedirect();
-
-    $lead = Lead::query()->firstOrFail();
+    ]);
 
     $response = $this->actingAs($advisor)
         ->get(CommunicationsNeedsYou::url(['lead' => $lead->id]));
@@ -212,15 +217,12 @@ test('lead selection redirects to conversation thread', function (): void {
 test('send estimate from conversation thread stays on same conversation', function (): void {
     $advisor = commsWorkspaceAdvisor();
 
-    $this->post(route('public.leads.store'), [
+    $lead = recordWebsiteLeadForWorkspace([
         'concern' => 'Brake pedal soft.',
         'phone' => '719-555-0302',
         'first_name' => 'Chris',
         'last_name' => 'Allen',
-        'source' => LeadSource::Website->value,
-    ])->assertRedirect();
-
-    $lead = Lead::query()->firstOrFail();
+    ]);
     $conversation = Conversation::query()->findOrFail($lead->conversation_id);
 
     $customer = Customer::query()->create([
