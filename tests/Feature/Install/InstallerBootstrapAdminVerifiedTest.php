@@ -5,10 +5,9 @@ use App\Ark\Runtime\Authorization\ArkRole;
 use App\Ark\Runtime\Preferences\DisplayTheme;
 use App\Models\User;
 use Database\Seeders\ArkAuthorizationSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 
-uses(RefreshDatabase::class);
+// Database refresh comes from tests/Pest.php (LazilyRefreshDatabase for Feature/).
 
 beforeEach(function () {
     $this->seed(ArkAuthorizationSeeder::class);
