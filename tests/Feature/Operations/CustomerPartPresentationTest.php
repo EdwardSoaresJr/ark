@@ -138,24 +138,28 @@ test('customer facing boundary derives customer part descriptions and strips inv
         'concerns.workGroups.lines',
     ]));
 
-    expect($snapshot['concerns'][0]['work_groups'][0]['lines'][1]['description'])
-        ->toBe('Gates 43527 Water Pump')
-        ->and($snapshot['concerns'][0]['work_groups'][0]['lines'][1]['part_number'])->toBe('43527');
+    $snapshotLines = collect($snapshot['concerns'][0]['work_groups'][0]['lines']);
+    $snapshotPart = $snapshotLines->firstWhere('description', 'Gates 43527 Water Pump');
+
+    expect($snapshotPart)->not->toBeNull()
+        ->and($snapshotPart['part_number'])->toBe('43527');
 
     $sanitized = app(CustomerFacingDocumentBoundary::class)->sanitize($snapshot);
-    $partLine = $sanitized['concerns'][0]['work_groups'][0]['lines'][1];
-    $explicitLine = $sanitized['concerns'][0]['work_groups'][0]['lines'][2];
+    $sanitizedLines = collect($sanitized['concerns'][0]['work_groups'][0]['lines']);
+    $partLine = $sanitizedLines->firstWhere('description', 'Gates 43527 Water Pump');
+    $explicitLine = $sanitizedLines->firstWhere(
+        'description',
+        'Prestone Dex-Cool 50/50 Prediluted Extended Life Antifreeze/Coolant',
+    );
 
-    expect($partLine)
-        ->description->toBe('Gates 43527 Water Pump')
-        ->customer_part_description->toBe('Water Pump')
-        ->not->toHaveKey('part_number')
-        ->not->toHaveKey('vendor_name')
-        ->not->toHaveKey('part_cost_cents');
+    expect($partLine)->not->toBeNull()
+        ->and($partLine['customer_part_description'])->toBe('Water Pump')
+        ->and($partLine)->not->toHaveKey('part_number')
+        ->and($partLine)->not->toHaveKey('vendor_name')
+        ->and($partLine)->not->toHaveKey('part_cost_cents');
 
-    expect($explicitLine)
-        ->description->toBe('Prestone Dex-Cool 50/50 Prediluted Extended Life Antifreeze/Coolant')
-        ->customer_part_description->toBe('Coolant');
+    expect($explicitLine)->not->toBeNull()
+        ->and($explicitLine['customer_part_description'])->toBe('Coolant');
 });
 
 test('grouped repair action pdf shows labor and part badges and hides column type labels', function () {
