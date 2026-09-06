@@ -34,7 +34,7 @@
                                 ->diffInMinutes(\App\Ark\Operations\Settings\ShopDisplayTimezone::present($appointment->ends_at)),
                         );
                     @endphp
-                    <p class="mt-1 text-xs text-slate-500">{{ $appointment->status->label() }} · {{ \App\Ark\Operations\Appointments\AppointmentSlotMinutes::durationLabel($appointmentLengthMinutes) }}@if ($appointment->estimated_labor_hours) · {{ $appointment->estimated_labor_hours }}h labor @endif</p>
+                    <p class="mt-1 text-xs text-slate-500">{{ $appointment->status->label() }} · {{ \App\Ark\Operations\Appointments\AppointmentSlotMinutes::durationLabel($appointmentLengthMinutes) }}@if ($appointment->estimated_labor_hours) · {{ $appointment->estimated_labor_hours }}h reserved labor @endif</p>
                 </div>
                 <a href="{{ route('operations.appointments.index') }}" class="ops-page-link">Schedule</a>
             </div>
@@ -218,6 +218,7 @@
                         :starts-at="old('starts_at', \App\Ark\Operations\Settings\ShopDisplayTimezone::present($appointment->starts_at)->format('Y-m-d\TH:i'))"
                         :ends-at="old('ends_at', \App\Ark\Operations\Settings\ShopDisplayTimezone::present($appointment->ends_at)->format('Y-m-d\TH:i'))"
                         :slot-minutes="$slotMinutes"
+                        :estimated-labor-hours="old('estimated_labor_hours', $appointment->estimated_labor_hours)"
                     />
                     <label class="block">
                         <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Vehicle</span>
@@ -232,14 +233,6 @@
                             @endforeach
                         </select>
                         <span class="mt-0.5 block text-[10px] text-slate-500">Optional until arrival.</span>
-                    </label>
-                    <label class="block">
-                        <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Scheduled work</span>
-                        <input type="text" inputmode="decimal" name="estimated_labor_hours" value="{{ old('estimated_labor_hours', $appointment->estimated_labor_hours) }}" placeholder="2.5" data-numeric-only class="mt-0.5 h-9 w-full rounded-sm border border-slate-300 px-2 text-sm @error('estimated_labor_hours') border-rose-400 @enderror">
-                        <span class="mt-0.5 block text-[10px] text-slate-500">labor hours — used for daily shop capacity</span>
-                        @error('estimated_labor_hours')
-                            <p class="mt-1 text-xs font-semibold text-rose-700">{{ $message }}</p>
-                        @enderror
                     </label>
                     <label class="block">
                         <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Concern</span>

@@ -160,6 +160,7 @@
                     :preferred-date="$preferredDate ?? null"
                     :request-preference-detail="$requestPreferenceDetail ?? null"
                     :slot-minutes="$slotMinutes"
+                    :estimated-labor-hours="old('estimated_labor_hours')"
                 />
 
                 @if ($customer !== null)
@@ -190,33 +191,16 @@
                 </label>
 
                 <div class="border-t border-slate-200 pt-2.5">
-                    <div class="grid gap-3 sm:grid-cols-2">
-                        <label class="block">
-                            <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Advisor</span>
-                            <select name="advisor_user_id" class="mt-0.5 h-9 w-full rounded-sm border border-slate-300 bg-white px-2 text-sm">
-                                <option value="">—</option>
-                                @foreach ($advisors as $advisor)
-                                    <option value="{{ $advisor->id }}" @selected(old('advisor_user_id', $defaultAdvisorId) == $advisor->id)>{{ $advisor->name }}</option>
-                                @endforeach
-                            </select>
-                        </label>
-                        <label class="block">
-                            <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Scheduled work</span>
-                            <input type="text" inputmode="decimal" name="estimated_labor_hours" value="{{ old('estimated_labor_hours') }}" placeholder="2.5" data-numeric-only class="mt-0.5 h-9 w-full rounded-sm border border-slate-300 bg-white px-2 text-sm @error('estimated_labor_hours') border-rose-400 @enderror">
-                            <span class="mt-0.5 block text-[10px] text-slate-500">labor hours — used for daily shop capacity</span>
-                            @error('estimated_labor_hours')
-                                <p class="mt-1 text-xs font-semibold text-rose-700">{{ $message }}</p>
-                            @enderror
-                        </label>
-                    </div>
-                </div>
-
-                @unless ($repairOrder ?? null)
-                    <label class="block sm:max-w-[12rem]">
-                        <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">RO # (optional)</span>
-                        <input type="number" name="repair_order_shop_number" value="{{ old('repair_order_shop_number') }}" min="1" class="mt-0.5 h-9 w-full rounded-sm border border-slate-300 bg-white px-2 text-sm">
+                    <label class="block sm:max-w-xs">
+                        <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Advisor</span>
+                        <select name="advisor_user_id" class="mt-0.5 h-9 w-full rounded-sm border border-slate-300 bg-white px-2 text-sm">
+                            <option value="">—</option>
+                            @foreach ($advisors as $advisor)
+                                <option value="{{ $advisor->id }}" @selected(old('advisor_user_id', $defaultAdvisorId) == $advisor->id)>{{ $advisor->name }}</option>
+                            @endforeach
+                        </select>
                     </label>
-                @endunless
+                </div>
 
                 <button type="submit" class="h-9 rounded-sm border border-slate-800 bg-slate-900 px-4 text-sm font-semibold text-white hover:bg-slate-800">Schedule</button>
             </form>

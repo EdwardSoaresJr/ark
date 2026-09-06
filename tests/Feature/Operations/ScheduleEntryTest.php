@@ -196,7 +196,15 @@ test('legacy appointments create still works alongside schedule entry', function
     $this->actingAs($advisor)
         ->get(route('operations.appointments.create', ['customer_id' => $customer->id]))
         ->assertOk()
-        ->assertSee('Legacy Link', false);
+        ->assertSee('Legacy Link', false)
+        ->assertSee('Appointment length', false)
+        ->assertSee('Reserved labor', false)
+        ->assertSee('· Auto', false)
+        ->assertSee('Automatically matches appointment length unless you override it.', false)
+        ->assertSee('Override', false)
+        ->assertDontSee('Capacity details (optional)', false)
+        ->assertDontSee('RO # (optional)', false)
+        ->assertDontSee('Scheduled work', false);
 
     $this->actingAs($advisor)
         ->get(route('operations.schedule'))

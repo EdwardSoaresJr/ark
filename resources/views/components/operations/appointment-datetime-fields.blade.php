@@ -6,6 +6,7 @@
     'preferredPeriod' => null,
     'preferredDate' => null,
     'requestPreferenceDetail' => null,
+    'estimatedLaborHours' => null,
 ])
 
 @php
@@ -145,7 +146,7 @@
             @endif
         </label>
         <label class="block">
-            <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Length</span>
+            <span class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Appointment length</span>
             <select name="duration_minutes" required class="mt-0.5 h-9 w-full rounded-sm border border-slate-300 bg-white px-2 text-sm">
                 @foreach ($durationOptions as $value => $label)
                     <option value="{{ $value }}" @selected((int) old('duration_minutes', $resolvedDuration) === (int) $value)>{{ $label }}</option>
@@ -153,4 +154,9 @@
             </select>
         </label>
     </div>
+
+    <x-operations.appointment-reserved-labor
+        :value="$estimatedLaborHours"
+        :duration-minutes="$resolvedDuration"
+    />
 </div>

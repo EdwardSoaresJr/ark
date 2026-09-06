@@ -234,6 +234,133 @@ test('canceled appointments do not consume capacity', function () {
     Carbon::setTestNow();
 });
 
+test('blank reserved labor inherits appointment length for capacity', function () {
+    Carbon::setTestNow(Carbon::parse('2026-06-10 08:00:00'));
+    $advisor = actingAsLearnCurrentAdvisor();
+    actingAsLearnCurrentStaff(ArkRole::Technician);
+    ShopSettings::current()->update([
+        'appointment_capacity_basis' => AppointmentCapacityBasis::Technicians->value,
+    ]);
+    ShopSettings::forgetCurrent();
+
+    $customer = Customer::query()->create([
+        'first_name' => 'Inherit',
+        'last_name' => 'Length',
+        'phone' => '555-0811',
+    ]);
+
+    $this->actingAs($advisor)
+        ->post(route('operations.appointments.store'), [
+            'customer_id' => $customer->id,
+            'advisor_user_id' => $advisor->id,
+            'starts_at' => '2026-06-10T09:00',
+            'ends_at' => '2026-06-10T10:30',
+            'concern' => 'Diagnostic',
+        ])
+        ->assertRedirect();
+
+    $appointment = Appointment::query()->sole();
+
+    expect($appointment->estimated_labor_hours)->toBeNull();
+
+    $snapshot = app(SchedulingCapacityCalculator::class)->forDay(Carbon::parse('2026-06-10'));
+
+    expect($snapshot->scheduledHours)->toBe(1.5);
+
+    Carbon::setTestNow();
+});
+
+test('explicit reserved labor override is preserved and used for capacity', function () {
+    Carbon::setTestNow(Carbon::parse('2026-06-10 08:00:00'));
+    $advisor = actingAsLearnCurrentAdvisor();
+    actingAsLearnCurrentStaff(ArkRole::Technician);
+    ShopSettings::current()->update([
+        'appointment_capacity_basis' => AppointmentCapacityBasis::Technicians->value,
+    ]);
+    ShopSettings::forgetCurrent();
+
+    $customer = Customer::query()->create([
+        'first_name' => 'Override',
+        'last_name' => 'Labor',
+        'phone' => '555-0812',
+    ]);
+
+    $this->actingAs($advisor)
+        ->post(route('operations.appointments.store'), [
+            'customer_id' => $customer->id,
+            'advisor_user_id' => $advisor->id,
+            'starts_at' => '2026-06-10T09:00',
+            'ends_at' => '2026-06-10T10:30',
+            'concern' => 'Diagnostic with work',
+            'estimated_labor_hours' => 2.5,
+        ])
+        ->assertRedirect();
+
+    $appointment = Appointment::query()->sole();
+
+    expect((float) $appointment->estimated_labor_hours)->toBe(2.5);
+
+    $snapshot = app(SchedulingCapacityCalculator::class)->forDay(Carbon::parse('2026-06-10'));
+
+    expect($snapshot->scheduledHours)->toBe(2.5);
+
+    $this->actingAs($advisor)
+        ->get(route('operations.appointments.show', $appointment))
+        ->assertOk()
+        ->assertSee('· Manual', false)
+        ->assertSee('Reset to appointment length', false);
+
+    Carbon::setTestNow();
+});
+
+test('resetting reserved labor clears override back to auto', function () {
+    Carbon::setTestNow(Carbon::parse('2026-06-10 08:00:00'));
+    $advisor = actingAsLearnCurrentAdvisor();
+    actingAsLearnCurrentStaff(ArkRole::Technician);
+    ShopSettings::current()->update([
+        'appointment_capacity_basis' => AppointmentCapacityBasis::Technicians->value,
+    ]);
+    ShopSettings::forgetCurrent();
+
+    $customer = Customer::query()->create([
+        'first_name' => 'Reset',
+        'last_name' => 'Labor',
+        'phone' => '555-0813',
+    ]);
+
+    $appointment = Appointment::query()->create([
+        'customer_id' => $customer->id,
+        'created_by_user_id' => $advisor->id,
+        'advisor_user_id' => $advisor->id,
+        'starts_at' => ShopDisplayTimezone::parseLocal('2026-06-10 09:00')->utc(),
+        'ends_at' => ShopDisplayTimezone::parseLocal('2026-06-10 10:30')->utc(),
+        'estimated_labor_hours' => 2.5,
+        'concern' => 'Was overridden',
+        'status' => AppointmentStatus::Scheduled,
+    ]);
+
+    $this->actingAs($advisor)
+        ->patch(route('operations.appointments.update', $appointment), [
+            'customer_id' => $customer->id,
+            'advisor_user_id' => $advisor->id,
+            'starts_at' => '2026-06-10T09:00',
+            'ends_at' => '2026-06-10T10:30',
+            'concern' => 'Was overridden',
+            'estimated_labor_hours' => '',
+        ])
+        ->assertRedirect();
+
+    $appointment->refresh();
+
+    expect($appointment->estimated_labor_hours)->toBeNull();
+
+    $snapshot = app(SchedulingCapacityCalculator::class)->forDay(Carbon::parse('2026-06-10'));
+
+    expect($snapshot->scheduledHours)->toBe(1.5);
+
+    Carbon::setTestNow();
+});
+
 test('unassigned appointments appear on the agenda scheduler', function () {
     Carbon::setTestNow(Carbon::parse('2026-06-10 08:00:00'));
     $advisor = actingAsLearnCurrentAdvisor();
